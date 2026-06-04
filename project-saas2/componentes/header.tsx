@@ -8,7 +8,7 @@ export default function Header() {
             <header className="w-full bg-black text-white sticky top-0 z-50 border-b border-gray-900">
                 {/* BARRA SUPERIOR DE AVISOS */}
                 <div className="w-full bg-pink-600 text-center py-1.5 text-[10px] sm:text-xs font-medium tracking-wider uppercase">
-                    FRETE GRÁTIS EM COMPRAS ACIMA DE R$ 299
+                    Promoção dia dos namorados
                 </div>
 
                 {/* CONTEÚDO PRINCIPAL DO TOPO */}
@@ -26,7 +26,7 @@ export default function Header() {
                         <Link href="/novidades" className="hover:text-pink-200 transition-colors">Novidades</Link>
                         <Link href="/feminino" className="hover:text-pink-200 transition-colors">Feminino</Link>
                         <Link href="/masculino" className="hover:text-pink-200 transition-colors">Masculino</Link>
-                        <Link href="/promocoes" className="text-pink-400 hover:text-pink-300 font-bold transition-colors">Outlet</Link>
+                        <Link href="/promocoes" className="text-pink-400 hover:text-pink-300 font-bold transition-colors">Promoção</Link>
                     </nav>
 
                     {/* BARRA DE PESQUISA (Sempre visível no computador) */}
