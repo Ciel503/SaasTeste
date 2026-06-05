@@ -1,6 +1,6 @@
 import "./globals.css";
 import Header from "@/componentes/header"; // Ajustado para "components" e "Header" com H maiúsculo
-import Adm from "@/app/adm/page"
+
 export default function RootLayout({
   children,
 }: Readonly<{
