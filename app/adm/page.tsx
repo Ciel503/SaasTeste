@@ -34,7 +34,7 @@ export default function AdmPage() {
     const file = inputFileRef.current.files[0];
 
     try {
-      // 1. Cria o FormData explicitamente com os nomes exatos que a rota espera
+      // 1. Cria o pacote FormData para enviar arquivos e textos juntos
       const formData = new FormData();
       formData.append('file', file);
       formData.append('nome', nomeRef.current?.value || '');
@@ -43,10 +43,10 @@ export default function AdmPage() {
       formData.append('tamanho', tamanhoRef.current?.value || '');
       formData.append('descricao', descricaoRef.current?.value || '');
 
-      // 2. Faz o fetch enviando o formData direto no body e SEM NENHUM HEADER MANUAL
+      // 2. Faz o envio direto no corpo (body) sem headers manuais
       const response = await fetch(`/api/roupas/upload`, {
         method: 'POST',
-        body: formData, // O Next.js configura o multipart/form-data sozinho aqui
+        body: formData,
       });
 
       if (response.ok) {
@@ -72,11 +72,10 @@ export default function AdmPage() {
     }
   };
 
-
   return (
     <div className="p-8 max-w-md mx-auto text-black">
-      <h1 className="text-2xl font-bold mb-6 text-center">Painel ADM - Cadastrar Roupa</h1>
-      <h2>atualização 9</h2>
+      <h1 className="text-2xl font-bold mb-6 text-center">Painel ADM - Cadastrar Roupa</h1><br />
+      <h2>correção 10</h2>
 
       <form onSubmit={handleUpload} className="flex flex-col gap-4 border p-6 rounded-lg bg-white shadow">
         

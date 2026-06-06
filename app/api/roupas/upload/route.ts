@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    // 1. ATUALIZADO: Lê o FormData enviado pelo formulário do ADM (Evita ler os headers vazios)
+    // 1. Lê os dados desempacotando o FormData enviado pela página ADM
     const data = await request.formData();
     
     const file = data.get('file') as File;
@@ -14,32 +14,29 @@ export async function POST(request: Request): Promise<NextResponse> {
     const tamanho = data.get('tamanho') as string || '';
     const descricao = data.get('descricao') as string || '';
 
-    // Validação de segurança para garantir que o arquivo de imagem chegou
     if (!file) {
       return NextResponse.json({ error: 'Arquivo de imagem não informado' }, { status: 400 });
     }
 
-    // 2. Salva a foto com segurança no Vercel Blob passando o arquivo estruturado
-        // 2. Salva a foto com segurança no Vercel Blob
+    // 2. Salva a foto no Vercel Blob com o sufixo randômico ativado
     const blob = await put(file.name, file, {
       access: 'public',
       token: process.env.DBFRAN_READ_WRITE_TOKEN,
-      addRandomSuffix: true, // <--- ADICIONE ESTA LINHA AQUI!
+      addRandomSuffix: true, // Evita conflitos caso suba arquivos com o mesmo nome
     });
 
+    const urlDaFoto = blob.url; // Link final gerado pelo Blob
 
-    const urlDaFoto = blob.url; // Esse é o link gerado que guardaremos no Neon
+    // 3. Conecta ao Neon usando o nome EXATO da sua variável gerada em produção
+    const sql = neon(`${process.env.FRANeon_DATABASE_URL}`);
 
-    // 3. Conecta ao Neon utilizando a variável de ambiente do banco
-    const sql = neon(`${process.env.DATABASE_URL}`);
-
-    // 4. Executa o SQL Puro usando as Crases para inserir todos os dados reais
+    // 4. Insere de forma segura os dados textuais e o link no banco de dados
     await sql`
       INSERT INTO produtos (nome, preco, genero, tamanho, descricao, imagem_url) 
       VALUES (${nome}, ${parseFloat(preco)}, ${genero}, ${tamanho}, ${descricao}, ${urlDaFoto})
     `;
 
-    // Retorna a confirmação de sucesso para o frontend
+    // Retorna o sucesso para o painel limpar os campos
     return NextResponse.json({ success: true, url: urlDaFoto });
 
   } catch (error) {
