@@ -72,8 +72,8 @@ export default function AdmPage() {
 
   return (
     <div className="p-8 max-w-md mx-auto text-black">
-      <h1 className="text-2xl font-bold mb-6 text-center">Painel ADM - Cadastrar Roupa atualizado1</h1>
-      <h2>atualização 3</h2>
+      <h1 className="text-2xl font-bold mb-6 text-center">Painel ADM - Cadastrar Roupa</h1>
+      <h2>atualização 5</h2>
 
       <form onSubmit={handleUpload} className="flex flex-col gap-4 border p-6 rounded-lg bg-white shadow">
         
