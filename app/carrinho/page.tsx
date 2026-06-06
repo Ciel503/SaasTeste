@@ -39,7 +39,7 @@ export default function CarrinhoPage() {
       if (item.id === id) {
         const novaQtd = tipo === 'aumentar' ? item.quantidade + 1 : item.quantidade - 1;
         return { ...item, quantity: Math.max(1, novaQtd) }; // Não deixa ficar menor que 1
-        return { ...item, quantidade: Math.max(1, novaQtd) };
+        
       }
       return item;
     });

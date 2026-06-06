@@ -1,5 +1,5 @@
 import "./globals.css";
-import Header from "@/components/header"; // Ajustado para "components" e "Header" com H maiúsculo
+import Header from "../components/header"; // Ajustado para "components" e "Header" com H maiúsculo
 
 export default function RootLayout({
   children,

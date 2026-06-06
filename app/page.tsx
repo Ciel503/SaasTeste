@@ -1,6 +1,9 @@
 import { neon } from "@neondatabase/serverless";
 // Importa o novo botão que criamos no Passo 1
-import BotaoCarrinho from "@/components/BotaoCarrinho"; 
+import BotaoCarrinho from "../components/botaocarrinho"; 
+// Força o Next.js a renderizar a página de forma dinâmica, impedindo cache travado de build
+export const dynamic = 'force-dynamic';
+
 
 interface Produto {
   id: number;
