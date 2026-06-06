@@ -1,6 +1,8 @@
 import { put } from '@vercel/blob';
 import { neon } from '@neondatabase/serverless';
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
+
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
@@ -44,3 +46,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
   }
 }
+
+// Limpa o cache da página inicial para a roupa nova aparecer na hora
+revalidatePath('/'); 
