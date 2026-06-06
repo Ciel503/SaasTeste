@@ -1,6 +1,5 @@
 'use client';
 
-import type { PutBlobResult } from '@vercel/blob';
 import { useState, useRef, ChangeEvent } from 'react';
 
 export default function AdmPage() {
@@ -50,7 +49,8 @@ export default function AdmPage() {
 
       if (response.ok) {
         alert("Produto e foto salvos com sucesso no Neon!");
-        // Limpa o formulário
+        
+        // Limpa o formulário automaticamente após o sucesso
         setPreviewUrl(null);
         if (inputFileRef.current) inputFileRef.current.value = '';
         if (nomeRef.current) nomeRef.current.value = '';
@@ -64,6 +64,7 @@ export default function AdmPage() {
 
     } catch (error) {
       console.error("Erro no envio:", error);
+      alert("Houve um erro na conexão.");
     } finally {
       setCarregando(false);
     }
@@ -71,7 +72,8 @@ export default function AdmPage() {
 
   return (
     <div className="p-8 max-w-md mx-auto text-black">
-      <h1 className="text-2xl font-bold mb-6 text-center">Painel ADM - Cadastrar Roupa</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">Painel ADM - Cadastrar Roupa atualizado1</h1>
+      <h2>atualização 1</h2>
 
       <form onSubmit={handleUpload} className="flex flex-col gap-4 border p-6 rounded-lg bg-white shadow">
         
