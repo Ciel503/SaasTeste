@@ -24,11 +24,13 @@ export default function CarrinhoPage() {
     setCarregando(false);
   }, []);
 
-  // 2. Função para salvar as alterações de volta no localStorage
+  // 2. Função para salvar as alterações de volta no localStorage e avisar o Header
   const atualizarLocalStorage = (novoCarrinho: ItemCarrinho[]) => {
     setItens(novoCarrinho);
     localStorage.setItem('carrinho', JSON.stringify(novoCarrinho));
-    window.dispatchEvent(new Event('carrinhoAtualizado')); // Dispara um evento customizado para atualizar o contador do carrinho no Header
+    
+    // Dispara o evento que sincroniza o contador de sacola do cabeçalho
+    window.dispatchEvent(new Event('carrinhoAtualizado'));
   };
 
   // 3. Altera a quantidade de um produto (Aumentar ou Diminuir)
@@ -36,7 +38,8 @@ export default function CarrinhoPage() {
     const novoCarrinho = itens.map(item => {
       if (item.id === id) {
         const novaQtd = tipo === 'aumentar' ? item.quantidade + 1 : item.quantidade - 1;
-        return { ...item, quantidade: Math.max(1, novaQtd) }; // Não deixa ficar menor que 1
+        return { ...item, quantity: Math.max(1, novaQtd) }; // Não deixa ficar menor que 1
+        return { ...item, quantidade: Math.max(1, novaQtd) };
       }
       return item;
     });
@@ -55,11 +58,11 @@ export default function CarrinhoPage() {
   };
 
   if (carregando) {
-    return <div className="text-center py-12 text-zinc-500">Carregando carrinho...</div>;
+    return <div className="text-center py-12 text-zinc-500 bg-zinc-50 min-h-screen">Carregando carrinho...</div>;
   }
 
   return (
-    <div className="w-full bg-zinc-50 min-h-screen p-4 sm:p-8 text-black">
+    <div className="w-full bg-zinc-50 min-h-screen p-4 sm:p-8 text-black pb-24 md:pb-8">
       <div className="max-w-3xl mx-auto">
         
         {/* BOTÃO VOLTAR */}
@@ -100,10 +103,9 @@ export default function CarrinhoPage() {
                     </p>
                   </div>
 
-                  {/* CONTROLE DE QUANTIDADE */}
+                  {/* CONTROLE DE QUANTIDADE - TOTALMENTE LIMPO */}
                   <div className="flex items-center gap-2 bg-zinc-100 p-1 rounded-lg border border-zinc-200">
                     <button 
-                      onClick={() => Skinner(item.id, 'diminuir')}
                       onClick={() => alterarQuantidade(item.id, 'diminuir')}
                       className="p-1 hover:bg-white rounded transition-colors text-zinc-600 cursor-pointer"
                     >
@@ -111,7 +113,6 @@ export default function CarrinhoPage() {
                     </button>
                     <span className="text-xs font-bold px-1 w-4 text-center">{item.quantidade}</span>
                     <button 
-                      onClick={() => alterarQuantidade(item.id, 'aimentar')}
                       onClick={() => alterarQuantidade(item.id, 'aumentar')}
                       className="p-1 hover:bg-white rounded transition-colors text-zinc-600 cursor-pointer"
                     >
@@ -142,7 +143,7 @@ export default function CarrinhoPage() {
               </div>
 
               <button 
-                onClick={() => alert("Integração de pagamento será o próximo passo!")}
+                onClick={() => alert("Próximo passo: integrar com checkout ou WhatsApp!")}
                 className="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs uppercase px-4 py-3 rounded-lg transition-colors cursor-pointer tracking-wider"
               >
                 Fechar Pedido
