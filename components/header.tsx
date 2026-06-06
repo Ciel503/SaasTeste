@@ -1,14 +1,41 @@
+'use client'; // 1. Ativa os recursos de monitoramento de navegador no Next.js
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShoppingBag, Heart, Search, User, Home, Tag } from "lucide-react";
 
 export default function Header() {
+    // 2. Estado para guardar a quantidade real do carrinho
+    const [totalItens, setTotalItens] = useState(0);
+
+    // 3. Função que varre o carrinho e soma todas as quantidades de roupas salvas
+    const atualizarContador = () => {
+        const carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
+        const total = carrinho.reduce((soma: number, item: any) => soma + (item.quantidade || 1), 0);
+        setTotalItens(total);
+    };
+
+    useEffect(() => {
+        // Inicializa o valor assim que o site carrega
+        atualizarContador();
+
+        // Escuta o clique do botão de adicionar e mudanças entre as páginas
+        window.addEventListener('carrinhoAtualizado', atualizarContador);
+        window.addEventListener('storage', atualizarContador);
+
+        return () => {
+            window.removeEventListener('carrinhoAtualizado', atualizarContador);
+            window.removeEventListener('storage', atualizarContador);
+        };
+    }, []);
+
     return (
         <>
             {/* 1. CABEÇALHO DO TOPO (Funciona em todas as telas) */}
             <header className="w-full bg-black text-white sticky top-0 z-50 border-b border-gray-900">
                 {/* BARRA SUPERIOR DE AVISOS */}
                 <div className="w-full bg-pink-600 text-center py-1.5 text-[10px] sm:text-xs font-medium tracking-wider uppercase">
-                    atualizaçao 12
+                    atualizaçao 13
                 </div>
 
                 {/* CONTEÚDO PRINCIPAL DO TOPO */}
@@ -48,9 +75,15 @@ export default function Header() {
                             <Heart className="w-5 h-5" />
                             <span className="absolute -top-1.5 -right-1.5 bg-pink-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
                         </Link>
+                        
+                        {/* 4. ATUALIZADO (Computador): Ícone com contador dinâmico e efeito pulse */}
                         <Link href="/carrinho" className="hover:text-pink-200 transition-colors relative">
                             <ShoppingBag className="w-5 h-5" />
-                            <span className="absolute -top-1.5 -right-1.5 bg-pink-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
+                            {totalItens > 0 && (
+                                <span className="absolute -top-1.5 -right-1.5 bg-pink-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold animate-pulse">
+                                    {totalItens}
+                                </span>
+                            )}
                         </Link>
                     </div>
 
@@ -88,9 +121,15 @@ export default function Header() {
                         <Tag className="w-5 h-5" />
                         <span className="text-[10px] font-medium tracking-wide">Outlet</span>
                     </Link>
+                    
+                    {/* 5. ATUALIZADO (Celular): Sacola da barra inferior sincronizada com a bolinha */}
                     <Link href="/carrinho" className="flex flex-col items-center justify-center gap-1 flex-1 text-zinc-400 hover:text-white relative">
                         <ShoppingBag className="w-5 h-5" />
-                        <span className="absolute top-2 right-6 bg-pink-600 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">0</span>
+                        {totalItens > 0 && (
+                            <span className="absolute top-2 right-6 bg-pink-600 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold animate-pulse">
+                                {totalItens}
+                            </span>
+                        )}
                         <span className="text-[10px] font-medium tracking-wide">Sacola</span>
                     </Link>
                 </div>
