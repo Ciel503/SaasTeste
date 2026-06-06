@@ -34,23 +34,25 @@ export default function AdmPage() {
     const file = inputFileRef.current.files[0];
 
     try {
-      // Enviamos o arquivo no body e os textos nos Headers para a rota ler
-      const response = await fetch(`/api/roupas/upload?filename=${file.name}`, {
+      // 1. Cria o FormData explicitamente com os nomes exatos que a rota espera
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('nome', nomeRef.current?.value || '');
+      formData.append('preco', precoRef.current?.value || '0');
+      formData.append('genero', generoRef.current?.value || '');
+      formData.append('tamanho', tamanhoRef.current?.value || '');
+      formData.append('descricao', descricaoRef.current?.value || '');
+
+      // 2. Faz o fetch enviando o formData direto no body e SEM NENHUM HEADER MANUAL
+      const response = await fetch(`/api/roupas/upload`, {
         method: 'POST',
-        body: file,
-        headers: {
-          'x-nome': nomeRef.current?.value || '',
-          'x-preco': precoRef.current?.value || '0',
-          'x-genero': generoRef.current?.value || '',
-          'x-tamanho': tamanhoRef.current?.value || '',
-          'x-descricao': descricaoRef.current?.value || '',
-        }
+        body: formData, // O Next.js configura o multipart/form-data sozinho aqui
       });
 
       if (response.ok) {
         alert("Produto e foto salvos com sucesso no Neon!");
         
-        // Limpa o formulário automaticamente após o sucesso
+        // Limpa o formulário após o sucesso
         setPreviewUrl(null);
         if (inputFileRef.current) inputFileRef.current.value = '';
         if (nomeRef.current) nomeRef.current.value = '';
@@ -64,16 +66,17 @@ export default function AdmPage() {
 
     } catch (error) {
       console.error("Erro no envio:", error);
-      alert("Houve um erro na conexão.");
+      alert("Erro de rede ao tentar salvar.");
     } finally {
       setCarregando(false);
     }
   };
 
+
   return (
     <div className="p-8 max-w-md mx-auto text-black">
       <h1 className="text-2xl font-bold mb-6 text-center">Painel ADM - Cadastrar Roupa</h1>
-      <h2>atualização 8</h2>
+      <h2>atualização 9</h2>
 
       <form onSubmit={handleUpload} className="flex flex-col gap-4 border p-6 rounded-lg bg-white shadow">
         
