@@ -8,7 +8,7 @@ export default function Header() {
             <header className="w-full bg-black text-white sticky top-0 z-50 border-b border-gray-900">
                 {/* BARRA SUPERIOR DE AVISOS */}
                 <div className="w-full bg-pink-600 text-center py-1.5 text-[10px] sm:text-xs font-medium tracking-wider uppercase">
-                    atualizaçao 11
+                    atualizaçao 12
                 </div>
 
                 {/* CONTEÚDO PRINCIPAL DO TOPO */}
