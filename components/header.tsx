@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ShoppingBag, Heart, Search, User, Home, Tag } from "lucide-react";
+import { ShoppingBag, Heart, Search, User, Home, Tag, Sparkles, Shirt, Footprints } from "lucide-react";
 
 export default function Header() {
     const [totalItens, setTotalItens] = useState(0);
 
-    // Função que varre o localStorage e soma tudo
     const atualizarContador = () => {
         if (typeof window !== 'undefined') {
             const carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
@@ -17,14 +16,9 @@ export default function Header() {
     };
 
     useEffect(() => {
-        // Inicializa o valor assim que a página abre
         atualizarContador();
-
-        // 1. Criamos um loop de checagem super rápido (200ms) de segurança.
-        // Isso garante que se qualquer botão clicar, o Header atualiza na hora sem falhar.
         const intervalo = setInterval(atualizarContador, 200);
 
-        // 2. Mantém os ouvintes padrão para garantir sincronia entre abas
         window.addEventListener('storage', atualizarContador);
         window.addEventListener('carrinhoAtualizado', atualizarContador);
 
@@ -37,26 +31,31 @@ export default function Header() {
 
     return (
         <>
-            {/* O RESTANTE DO SEU HTML DO HEADER CONTINUA EXATAMENTE IGUAL */}
+            {/* 1. CABEÇALHO DO TOPO (Computador e Base Celular) */}
             <header className="w-full bg-black text-white sticky top-0 z-50 border-b border-gray-900">
+                {/* BARRA SUPERIOR DE AVISOS */}
                 <div className="w-full bg-pink-600 text-center py-1.5 text-[10px] sm:text-xs font-medium tracking-wider uppercase">
-                    atualizaçao 17
+                    ATUALIZAÇÃO 20.0
                 </div>
 
+                {/* CONTEÚDO PRINCIPAL DO TOPO */}
                 <div className="max-w-7xl mx-auto px-4 h-16 sm:h-20 flex items-center justify-between gap-4">
+
+                    {/* LOGO */}
                     <div className="flex-1 md:flex-initial text-center md:text-left">
                         <Link href="/" className="text-xl sm:text-2xl font-black tracking-widest uppercase">
                             VÉSTIA
                         </Link>
                     </div>
 
+                    {/* LINKS DE CATEGORIAS ATUALIZADOS (Apenas Computador) */}
                     <nav className="hidden md:flex items-center gap-8 font-medium text-sm tracking-wide uppercase">
-                        <Link href="/novidades" className="hover:text-pink-200 transition-colors">Novidades</Link>
-                        <Link href="/feminino" className="hover:text-pink-200 transition-colors">Feminino</Link>
-                        <Link href="/masculino" className="hover:text-pink-200 transition-colors">Masculino</Link>
-                        <Link href="/promocoes" className="text-pink-400 hover:text-pink-300 font-bold transition-colors">Promoção</Link>
+                        <Link href="/roupas" className="hover:text-pink-200 transition-colors">Roupas</Link>
+                        <Link href="/acessorios" className="hover:text-pink-200 transition-colors">Acessórios</Link>
+                        <Link href="/cosmeticos" className="hover:text-pink-200 transition-colors">Cosméticos</Link>
                     </nav>
 
+                    {/* BARRA DE PESQUISA */}
                     <div className="relative w-full max-w-xs hidden md:block">
                         <input
                             type="text"
@@ -66,6 +65,7 @@ export default function Header() {
                         <Search className="absolute right-3 top-2.5 w-4 h-4 text-zinc-500" />
                     </div>
 
+                    {/* ÍCONES DE AÇÃO */}
                     <div className="hidden md:flex items-center gap-5">
                         <Link href="/conta" className="hover:text-pink-200 transition-colors">
                             <User className="w-5 h-5" />
@@ -75,7 +75,6 @@ export default function Header() {
                             <span className="absolute -top-1.5 -right-1.5 bg-pink-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
                         </Link>
                         
-                        {/* Contador Computador */}
                         <Link href="/carrinho" className="hover:text-pink-200 transition-colors relative">
                             <ShoppingBag className="w-5 h-5" />
                             {totalItens > 0 && (
@@ -85,8 +84,10 @@ export default function Header() {
                             )}
                         </Link>
                     </div>
+
                 </div>
 
+                {/* BARRA DE PESQUISA DO CELULAR */}
                 <div className="w-full px-4 pb-3 md:hidden bg-black">
                     <div className="relative w-full">
                         <input
@@ -99,27 +100,35 @@ export default function Header() {
                 </div>
             </header>
 
-            {/* BARRA INFERIOR CELULAR */}
+            {/* 2. BARRA DE NAVEGAÇÃO INFERIOR ATUALIZADA PARA CELULAR (Estilo Aplicativo) */}
             <div className="fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-md border-t border-zinc-900 text-white md:hidden">
                 <div className="flex items-center justify-around h-16">
+                    
+                    {/* Início */}
                     <Link href="/" className="flex flex-col items-center justify-center gap-1 flex-1 text-zinc-400 hover:text-white">
                         <Home className="w-5 h-5 text-white" />
                         <span className="text-[10px] font-medium tracking-wide">Início</span>
                     </Link>
-                    <Link href="/feminino" className="flex flex-col items-center justify-center gap-1 flex-1 text-zinc-400 hover:text-white">
-                        <span className="text-xs font-bold font-mono">F</span>
-                        <span className="text-[10px] font-medium tracking-wide">Feminino</span>
-                    </Link>
-                    <Link href="/masculino" className="flex flex-col items-center justify-center gap-1 flex-1 text-zinc-400 hover:text-white">
-                        <span className="text-xs font-bold font-mono">M</span>
-                        <span className="text-[10px] font-medium tracking-wide">Masculino</span>
-                    </Link>
-                    <Link href="/promocoes" className="flex flex-col items-center justify-center gap-1 flex-1 text-pink-400 hover:text-pink-300">
-                        <Tag className="w-5 h-5" />
-                        <span className="text-[10px] font-medium tracking-wide">Outlet</span>
+                    
+                    {/* Roupas */}
+                    <Link href="/roupas" className="flex flex-col items-center justify-center gap-1 flex-1 text-zinc-400 hover:text-white">
+                        <Shirt className="w-5 h-5" />
+                        <span className="text-[10px] font-medium tracking-wide">Roupas</span>
                     </Link>
                     
-                    {/* Contador Celular */}
+                    {/* Acessórios */}
+                    <Link href="/acessorios" className="flex flex-col items-center justify-center gap-1 flex-1 text-zinc-400 hover:text-white">
+                        <Footprints className="w-5 h-5" />
+                        <span className="text-[10px] font-medium tracking-wide">Acessórios</span>
+                    </Link>
+                    
+                    {/* Cosméticos */}
+                    <Link href="/cosmeticos" className="flex flex-col items-center justify-center gap-1 flex-1 text-pink-400 hover:text-pink-300">
+                        <Sparkles className="w-5 h-5" />
+                        <span className="text-[10px] font-medium tracking-wide">Cosméticos</span>
+                    </Link>
+                    
+                    {/* Sacola */}
                     <Link href="/carrinho" className="flex flex-col items-center justify-center gap-1 flex-1 text-zinc-400 hover:text-white relative">
                         <ShoppingBag className="w-5 h-5" />
                         {totalItens > 0 && (
@@ -129,6 +138,7 @@ export default function Header() {
                         )}
                         <span className="text-[10px] font-medium tracking-wide">Sacola</span>
                     </Link>
+
                 </div>
             </div>
         </>
