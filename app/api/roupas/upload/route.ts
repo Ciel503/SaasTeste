@@ -50,12 +50,16 @@ export async function POST(request: Request): Promise<NextResponse> {
     `;
 
     // 5. Limpa instantaneamente o cache do site para os produtos novos aparecerem
+        // ... abaixo do await sql ...
     revalidatePath('/');
     revalidatePath('/roupas');
     revalidatePath('/acessorios');
     revalidatePath('/cosmeticos');
+    revalidatePath('/calcados'); // Adicione esta linha aqui!
 
     return NextResponse.json({ success: true, url: urlDaFoto });
+
+
 
   } catch (error) {
     console.error('Erro crítico no processo de cadastro:', error);

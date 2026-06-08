@@ -107,7 +107,7 @@ export default function RoupasPage() {
           <div className="flex flex-col gap-1.5 mt-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Peças</span>
             <div className="flex flex-wrap gap-2">
-              {["Todos", "Blusa", "Calça", "Short", "Íntima"].map((sub) => (
+              {["Todos", "Blusa", "Calça", "Short", "Íntima", "Calçados"].map((sub) => (
                 <button
                   key={sub}
                   onClick={() => setSubcategoriaSelecionada(sub)}

@@ -3,13 +3,16 @@
 import { useState, useRef, ChangeEvent } from 'react';
 
 export default function FormularioAdm() {
+  // Controle de abas principais (Roupas, Acessórios, Cosméticos)
   const [abaAtiva, setAbaAtiva] = useState<'roupas' | 'acessorios' | 'cosmeticos'>('roupas');
   
+  // Referências dos elementos comuns do formulário
   const inputFileRef = useRef<HTMLInputElement>(null);
   const nomeRef = useRef<HTMLInputElement>(null);
   const precoRef = useRef<HTMLInputElement>(null);
   const descricaoRef = useRef<HTMLTextAreaElement>(null);
   
+  // Referências dos elementos dinâmicos
   const generoRef = useRef<HTMLSelectElement>(null);
   const tamanhoRef = useRef<HTMLSelectElement>(null);
   const subcategoriaRef = useRef<HTMLSelectElement>(null);
@@ -38,8 +41,11 @@ export default function FormularioAdm() {
       formData.append('nome', nomeRef.current?.value || '');
       formData.append('preco', precoRef.current?.value || '0');
       
+      // Define a categoria máster com base na aba ativa
       const cat = abaAtiva === 'roupas' ? 'Roupas' : abaAtiva === 'acessorios' ? 'Acessórios' : 'Cosméticos';
       formData.append('categoria', cat);
+      
+      // Envia os dados específicos (se houverem)
       formData.append('genero', generoRef.current?.value || '');
       formData.append('tamanho', tamanhoRef.current?.value || '');
       formData.append('subcategoria', subcategoriaRef.current?.value || '');
@@ -48,7 +54,7 @@ export default function FormularioAdm() {
       const response = await fetch(`/api/roupas/upload`, { method: 'POST', body: formData });
 
       if (response.ok) {
-        alert(`${cat} cadastrado(a) com sucesso!`);
+        alert(`${cat} cadastrado(a) com sucesso no Neon!`);
         setPreviewUrl(null);
         if (inputFileRef.current) inputFileRef.current.value = '';
         if (nomeRef.current) nomeRef.current.value = '';
@@ -70,12 +76,19 @@ export default function FormularioAdm() {
 
   return (
     <>
+      {/* SELETOR DE ABAS PRINCIPAIS */}
       <div className="flex bg-zinc-200 p-1 rounded-xl mb-6 font-semibold border border-zinc-300">
         {(['roupas', 'acessorios', 'cosmeticos'] as const).map((aba) => (
           <button
             key={aba}
             type="button"
-            onClick={() => setAbaAtiva(aba)}
+            onClick={() => {
+              setAbaAtiva(aba);
+              // Limpa os seletores dinâmicos ao trocar de aba para evitar lixo de estado
+              if (generoRef.current) generoRef.current.value = '';
+              if (tamanhoRef.current) tamanhoRef.current.value = '';
+              if (subcategoriaRef.current) subcategoriaRef.current.value = '';
+            }}
             className={`flex-1 text-xs py-2 rounded-lg uppercase tracking-wider transition-all cursor-pointer ${
               abaAtiva === aba ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
             }`}
@@ -85,7 +98,10 @@ export default function FormularioAdm() {
         ))}
       </div>
 
+      {/* FORMULÁRIO DINÂMICO UNIFICADO */}
       <form onSubmit={handleUpload} className="flex flex-col gap-4 border border-zinc-200 p-5 rounded-2xl bg-white shadow-sm">
+        
+        {/* Foto */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Foto</label>
           <div className="border-2 border-dashed border-zinc-300 rounded-xl p-4 text-center bg-zinc-50 flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden">
@@ -97,20 +113,23 @@ export default function FormularioAdm() {
             ) : (
               <p className="text-[11px] text-zinc-400 font-medium">📸 Escolha a Imagem</p>
             )}
-            <input ref={inputFileRef} type="file" accept="image/*" required onChange={handleMudarImagem} className="absolute inset-0 opacity-0 cursor-pointer" />
+            <input ref={inputFileRef} type="file" accept="image/*" required={!previewUrl} onChange={handleMudarImagem} className="absolute inset-0 opacity-0 cursor-pointer" />
           </div>
         </div>
 
+        {/* Nome */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Nome</label>
           <input ref={nomeRef} type="text" placeholder="Nome do produto" required className="border p-2.5 rounded-lg text-sm bg-white focus:outline-none focus:border-pink-500" />
         </div>
 
+        {/* Preço */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Preço (R$)</label>
           <input ref={precoRef} type="number" step="0.01" placeholder="99.90" required className="border p-2.5 rounded-lg text-sm bg-white focus:outline-none" />
         </div>
 
+        {/* Gênero (Exibe para Roupas e Acessórios, oculta em Cosméticos) */}
         {abaAtiva !== 'cosmeticos' && (
           <div className="flex flex-col gap-1">
             <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Gênero</label>
@@ -122,41 +141,51 @@ export default function FormularioAdm() {
           </div>
         )}
 
+        {/* Tamanho (Exibido para Roupas. Nota: Se for Calçado, pode salvar o tamanho como texto ou número livre) */}
         {abaAtiva === 'roupas' && (
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Tamanho</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Tamanho / Numeração</label>
             <select ref={tamanhoRef} required className="border p-2.5 rounded-lg text-sm bg-white focus:outline-none">
               <option value="">Selecione</option>
               <option value="P">P</option>
               <option value="M">M</option>
               <option value="G">G</option>
               <option value="GG">GG</option>
+              <option value="38">38</option>
+              <option value="39">39</option>
+              <option value="40">40</option>
+              <option value="41">41</option>
+              <option value="42">42</option>
             </select>
           </div>
         )}
 
+        {/* Subcategoria Dinâmica */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Subcategoria</label>
           <select ref={subcategoriaRef} required className="border p-2.5 rounded-lg text-sm bg-white focus:outline-none">
             <option value="">Selecione</option>
+            {/* Opções de Roupas (Calçados incluído aqui!) */}
             {abaAtiva === 'roupas' && (
               <>
                 <option value="Blusa">Blusa</option>
                 <option value="Calça">Calça</option>
                 <option value="Short">Short</option>
                 <option value="Íntima">Íntima</option>
+                <option value="Calçados">Calçados (Tênis/Sapato)</option>
               </>
             )}
+            {/* Opções de Acessórios (Sem Pulseira) */}
             {abaAtiva === 'acessorios' && (
               <>
                 <option value="Relógio">Relógio</option>
                 <option value="Óculos">Óculos</option>
                 <option value="Boné">Boné</option>
-                <option value="Pulseira">Pulseira</option>
-                <option value="Joias">Joias</option>
+                <option value="Joias">Joias / Pulseiras</option>
                 <option value="Outros">Outros</option>
               </>
             )}
+            {/* Opções de Cosméticos */}
             {abaAtiva === 'cosmeticos' && (
               <>
                 <option value="Perfume">Perfume</option>
@@ -168,11 +197,13 @@ export default function FormularioAdm() {
           </select>
         </div>
 
+        {/* Descrição */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Descrição</label>
-          <textarea ref={descricaoRef} rows={3} placeholder="Detalhes..." required className="border p-2.5 rounded-lg text-sm bg-white resize-none focus:outline-none focus:border-pink-500" />
+          <textarea ref={descricaoRef} rows={3} placeholder="Detalhes do produto..." required className="border p-2.5 rounded-lg text-sm bg-white resize-none focus:outline-none focus:border-pink-500" />
         </div>
 
+        {/* Botão Submeter */}
         <button type="submit" disabled={carregando} className="bg-zinc-950 text-white p-3 rounded-xl font-bold text-xs uppercase tracking-wider disabled:bg-zinc-400 mt-2 hover:bg-pink-600 transition-colors cursor-pointer">
           {carregando ? 'Cadastrando...' : 'Cadastrar Produto'}
         </button>

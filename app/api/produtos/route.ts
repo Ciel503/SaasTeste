@@ -4,16 +4,17 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    // Pega o parâmetro sempre em minúsculo
     const categoriaUrl = (searchParams.get("categoria") || "roupas").toLowerCase().trim();
     
     let categoriaBanco = "Roupas";
 
-    // Padronização absoluta em minúsculas
+    // Mapeamento absoluto em letras minúsculas para o banco de dados
     if (categoriaUrl === "acessorios") {
       categoriaBanco = "Acessórios";
     } else if (categoriaUrl === "cosmeticos") {
       categoriaBanco = "Cosméticos";
+    } else if (categoriaUrl === "calcados") {
+      categoriaBanco = "Calçados"; // Adicionado suporte a calçados
     } else {
       categoriaBanco = "Roupas";
     }
