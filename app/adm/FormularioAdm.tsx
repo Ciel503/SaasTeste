@@ -20,42 +20,70 @@ export default function FormularioAdm() {
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const [statusMensagem, setStatusMensagem] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null);
+  const [idProdutoEditando, setIdProdutoEditando] = useState<number | null>(null); // Para controlar se estamos editando ou criando
+  
 
   const handleMudarImagem = (event: ChangeEvent<HTMLInputElement>) => {
     const arquivo = event.target.files?.[0];
     setPreviewUrl(arquivo ? URL.createObjectURL(arquivo) : null);
   };
 
-  const handleUpload = async (event: React.FormEvent) => {
+    const handleUpload = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!inputFileRef.current?.files?.length) {
-      alert("Selecione uma foto do produto!");
+    setStatusMensagem(null); // Limpa avisos anteriores antes de começar
+
+    // 1. Se for cadastro novo, a foto é obrigatória. Se for edição, pode manter a antiga!
+    if (!idProdutoEditando && !inputFileRef.current?.files?.length) {
+      setStatusMensagem({ tipo: 'erro', texto: '⚠️ Selecione uma foto do produto!' });
       return;
     }
 
     setCarregando(true);
-    const file = inputFileRef.current.files[0];
+    const file = inputFileRef.current?.files?.[0]; // Captura o arquivo com segurança se houver
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      if (file) formData.append('file', file); // Só envia a foto se uma nova foi escolhida
+      
       formData.append('nome', nomeRef.current?.value || '');
       formData.append('preco', precoRef.current?.value || '0');
       
-      // Define a categoria máster com base na aba ativa
       const cat = abaAtiva === 'roupas' ? 'Roupas' : abaAtiva === 'acessorios' ? 'Acessórios' : 'Cosméticos';
       formData.append('categoria', cat);
       
-      // Envia os dados específicos (se houverem)
       formData.append('genero', generoRef.current?.value || '');
       formData.append('tamanho', tamanhoRef.current?.value || '');
       formData.append('subcategoria', subcategoriaRef.current?.value || '');
       formData.append('descricao', descricaoRef.current?.value || '');
 
-      const response = await fetch(`/api/roupas/upload`, { method: 'POST', body: formData });
+      // 2. Se estiver editando, injeta o ID no FormData para a API saber quem atualizar
+      if (idProdutoEditando) {
+        formData.append('id', idProdutoEditando.toString());
+      }
+
+      // 3. Escolhe dinamicamente a API de cadastro ou a sua real de edição /api/editar
+      const rotaUrl = idProdutoEditando ? '/api/editar' : '/api/roupas/upload';
+      const response = await fetch(rotaUrl, { method: 'POST', body: formData });
 
       if (response.ok) {
-        alert(`${cat} cadastrado(a) com sucesso no Neon!`);
+        // 4. Mensagem inteligente baseada na ação, ativando o Toast flutuante (Sem usar alert)
+        const msgSucesso = idProdutoEditando ? '✅ Alterações salvas com sucesso no Neon!' : `✅ ${cat} cadastrado(a) com sucesso!`;
+        setStatusMensagem({ tipo: 'sucesso', texto: msgSucesso });
+
+        // 5. SOLTA O GRITO: Avisa a ListaEstoque lá embaixo para atualizar na hora sem dar F5
+        window.dispatchEvent(new Event("estoqueAtualizado"));
+
+        // Limpa as referências e desliga o modo de edição automaticamente
+              if (response.ok) {
+        // Mensagem inteligente baseada na ação, ativando o Toast flutuante
+        const msgSucesso = idProdutoEditando ? '✅ Alterações salvas com sucesso no Neon!' : `✅ ${cat} cadastrado(a) com sucesso!`;
+        setStatusMensagem({ tipo: 'sucesso', texto: msgSucesso });
+
+        // 🔥 SOLTA O GRITO: Avisa a ListaEstoque lá embaixo para atualizar na hora sem dar F5
+        window.dispatchEvent(new Event("estoqueAtualizado"));
+
+        // 🔥 LIMPEZA DIRETA: Reseta os campos para o próximo cadastro novo
         setPreviewUrl(null);
         if (inputFileRef.current) inputFileRef.current.value = '';
         if (nomeRef.current) nomeRef.current.value = '';
@@ -64,16 +92,22 @@ export default function FormularioAdm() {
         if (generoRef.current) generoRef.current.value = '';
         if (tamanhoRef.current) tamanhoRef.current.value = '';
         if (subcategoriaRef.current) subcategoriaRef.current.value = '';
+
+        // Faz o aviso flutuante sumir sozinho após 4 segundos
+        setTimeout(() => setStatusMensagem(null), 4000);
+      }
+
       } else {
-        alert("Erro ao salvar produto.");
+        setStatusMensagem({ tipo: 'erro', texto: '❌ Erro ao salvar dados no Neon.' });
       }
     } catch (e) {
       console.error(e);
-      alert("Erro na conexão.");
+      setStatusMensagem({ tipo: 'erro', texto: '❌ Erro na conexão com o banco.' });
     } finally {
       setCarregando(false);
     }
   };
+
 
   return (
     <>
@@ -99,8 +133,31 @@ export default function FormularioAdm() {
         ))}
       </div>
 
-      {/* FORMULÁRIO DINÂMICO UNIFICADO */}
-            {/* 🎨 FORMULÁRIO CORRIGIDO: CAMPOS ESCUROS COM LETRAS BRANCAS */}
+            {/* 🚨 NOTIFICAÇÃO FLUTUANTE (TOAST) NO VERDE ESMERALDA */}
+      {statusMensagem && (
+        <div className="fixed inset-x-4 bottom-20 sm:bottom-6 sm:left-auto sm:right-6 z-50 flex justify-center pointer-events-none animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className={`p-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-3 border shadow-2xl pointer-events-auto backdrop-blur-md ${
+            statusMensagem.tipo === 'sucesso' 
+              ? 'bg-zinc-900/95 text-emerald-400 border-emerald-500 shadow-emerald-500/10' // 🔥 Mudado para o verde esmeralda!
+              : 'bg-red-950/95 text-red-400 border-red-500'
+          }`}>
+            {statusMensagem.tipo === 'sucesso' ? (
+              /* Círculo Verde com o visto ✓ pulando */
+              <div className="w-5 h-5 rounded-full bg-emerald-500 text-zinc-950 flex items-center justify-center text-[11px] font-black scale-110 animate-bounce">
+                ✓
+              </div>
+            ) : (
+              <span className="text-sm">⚠️</span>
+            )}
+            <span>{statusMensagem.texto}</span>
+          </div>
+        </div>
+      )}
+
+
+
+
+
       <form onSubmit={handleUpload} className="flex flex-col gap-4 border border-zinc-800 p-5 rounded-2xl bg-zinc-900 shadow-xl text-white">
         
         {/* Foto */}
