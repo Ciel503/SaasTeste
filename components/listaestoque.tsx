@@ -2,12 +2,15 @@
 
 import { useState, useEffect, ChangeEvent } from 'react';
 
+
 interface Produto {
   id: number;
   nome: string;
   preco: string;
   categoria: string;
+  genero: string | null;  // 🔥 Adicionado para o TypeScript reconhecer
   subcategoria: string;
+  tamanho: string | null; // 🔥 Adicionado para o TypeScript reconhecer
   descricao: string;
   imagem_url: string;
 }
@@ -101,8 +104,8 @@ export default function ListaEstoque() {
       
       const prodOriginal = estoque.find(p => p.id === idProdutoEditando);
       formData.append('categoria', prodOriginal?.categoria || 'Roupas');
-      if (prodOriginal?.genero) formData.append('genero', prodOriginal.genero);
-      if (prodOriginal?.tamanho) formData.append('tamanho', prodOriginal.tamanho);
+      formData.append('genero', prodOriginal?.genero || '');   // 🔥 Atualizado seguro
+      formData.append('tamanho', prodOriginal?.tamanho || '');
       
       if (arquivoFoto) formData.append('file', arquivoFoto);
 
