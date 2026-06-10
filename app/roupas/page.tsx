@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { neon } from "@neondatabase/serverless";
+import { useSearchParams } from "next/navigation"; // 🔥 Importado para fazer a busca funcionar
 import BotaoCarrinho from "../../components/botaocarrinho";
 
 interface Produto {
@@ -25,8 +25,11 @@ export default function RoupasPage() {
   const [generoSelecionado, setGeneroSelecionado] = useState<string>("Todos");
   const [subcategoriaSelecionada, setSubcategoriaSelecionada] = useState<string>("Todos");
 
- 
-  // 1. Busca os dados usando a nossa nova API segura
+  // 🔥 Captura o termo digitado que o seu Header joga na URL
+  const searchParams = useSearchParams();
+  const termoBusca = searchParams.get('busca') || '';
+
+  // 1. Busca os dados usando a sua nova API segura
   useEffect(() => {
     async function buscarRoupas() {
       try {
@@ -47,10 +50,19 @@ export default function RoupasPage() {
     buscarRoupas();
   }, []);
 
-
-  // 2. Toda vez que o cliente clicar em um filtro, essa lógica roda e atualiza a tela
+  // 2. Toda vez que o cliente clicar em um filtro OU digitar na busca, essa lógica roda e atualiza a tela
   useEffect(() => {
     let resultado = todosProdutos;
+
+    // 🔥 FILTRO DA BARRA DE BUSCA: Cruza o texto digitado com nome, descrição ou subcategoria
+    if (termoBusca.trim() !== "") {
+      const termo = termoBusca.toLowerCase();
+      resultado = resultado.filter(p => 
+        p.nome.toLowerCase().includes(termo) || 
+        p.descricao.toLowerCase().includes(termo) ||
+        p.subcategoria.toLowerCase().includes(termo)
+      );
+    }
 
     // Filtro de Gênero (Masculino / Feminino)
     if (generoSelecionado !== "Todos") {
@@ -63,7 +75,7 @@ export default function RoupasPage() {
     }
 
     setProdutosFiltrados(resultado);
-  }, [generoSelecionado, subcategoriaSelecionada, todosProdutos]);
+  }, [generoSelecionado, subcategoriaSelecionada, todosProdutos, termoBusca]); // 🔥 termoBusca adicionado aqui para disparar o filtro
 
   if (carregando) {
     return <div className="text-center py-12 text-zinc-500 bg-zinc-50 min-h-screen">Carregando vitrine de roupas...</div>;
@@ -77,7 +89,10 @@ export default function RoupasPage() {
         <div className="max-w-7xl mx-auto flex flex-col gap-4">
           <div>
             <h1 className="text-xl font-black uppercase tracking-tight text-zinc-900">Coleção de Roupas</h1>
-            <p className="text-xs text-zinc-500">Filtre e encontre o seu estilo ideal.</p>
+            <p className="text-xs text-zinc-500">
+              {/* 🔥 Mostra se há uma busca ativa no topo dos filtros */}
+              {termoBusca ? `Buscando por: "${termoBusca}"` : "Filtre e encontre o seu estilo ideal."}
+            </p>
           </div>
 
           {/* FILTRO 1: GÊNERO */}
@@ -103,7 +118,7 @@ export default function RoupasPage() {
             </div>
           </div>
 
-          {/* FILTRO 2: SUBCATEGORIAS (Apenas se o gênero for selecionado, ou mostra todas) */}
+          {/* FILTRO 2: SUBCATEGORIAS */}
           <div className="flex flex-col gap-1.5 mt-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Peças</span>
             <div className="flex flex-wrap gap-2">
@@ -130,7 +145,7 @@ export default function RoupasPage() {
         {produtosFiltrados.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl border p-6">
             <p className="text-zinc-500 text-sm">Nenhum produto encontrado para esse filtro.</p>
-            <p className="text-xs text-zinc-400 mt-1">Tente selecionar outra combinação!</p>
+            <p className="text-xs text-zinc-400 mt-1">Tente selecionar outra combinação ou limpar a busca!</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">

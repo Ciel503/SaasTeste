@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation"; // 🔥 Importado para capturar a busca do Header
 import BotaoCarrinho from "../../components/botaocarrinho";
 
 interface Produto {
@@ -23,10 +24,14 @@ export default function AcessoriosPage() {
   const [generoSelecionado, setGeneroSelecionado] = useState<string>("Todos");
   const [subcategoriaSelecionada, setSubcategoriaSelecionada] = useState<string>("Todos");
 
+  // 🔥 Captura o termo de busca digitado que o seu Header atualiza na URL
+  const searchParams = useSearchParams();
+  const termoBusca = searchParams.get('busca') || '';
+
   useEffect(() => {
     async function buscarAcessorios() {
       try {
-        // ATUALIZADO: Fetch usando termo minúsculo sem acento
+        // Fetch usando termo minúsculo sem acento mapeado na sua API
         const response = await fetch('/api/produtos?categoria=acessorios');
         if (!response.ok) throw new Error("Erro na requisição");
         
@@ -42,8 +47,20 @@ export default function AcessoriosPage() {
     buscarAcessorios();
   }, []);
 
+  // 2. Toda vez que o cliente clicar em um filtro OU digitar na busca, essa lógica roda
   useEffect(() => {
     let resultado = todosProdutos;
+
+    // 🔥 FILTRO DA BARRA DE BUSCA: Cruza o texto digitado com nome, descrição ou subcategoria
+    if (termoBusca.trim() !== "") {
+      const termo = termoBusca.toLowerCase();
+      resultado = resultado.filter(p => 
+        p.nome.toLowerCase().includes(termo) || 
+        p.descricao.toLowerCase().includes(termo) ||
+        p.subcategoria.toLowerCase().includes(termo)
+      );
+    }
+
     if (generoSelecionado !== "Todos") {
       resultado = resultado.filter(p => p.genero === generoSelecionado);
     }
@@ -51,7 +68,7 @@ export default function AcessoriosPage() {
       resultado = resultado.filter(p => p.subcategoria === subcategoriaSelecionada);
     }
     setProdutosFiltrados(resultado);
-  }, [generoSelecionado, subcategoriaSelecionada, todosProdutos]);
+  }, [generoSelecionado, subcategoriaSelecionada, todosProdutos, termoBusca]); // 🔥 termoBusca adicionado para atualizar em tempo real
 
   if (carregando) {
     return <div className="text-center py-12 text-zinc-500 bg-zinc-50 min-h-screen">Carregando vitrine de acessórios...</div>;
@@ -63,7 +80,10 @@ export default function AcessoriosPage() {
         <div className="max-w-7xl mx-auto flex flex-col gap-4">
           <div>
             <h1 className="text-xl font-black uppercase tracking-tight text-zinc-900">Acessórios</h1>
-            <p className="text-xs text-zinc-500">Destaque o seu visual com os melhores complementos.</p>
+            <p className="text-xs text-zinc-500">
+              {/* 🔥 Mostra se há uma busca por texto ativa na vitrine */}
+              {termoBusca ? `Buscando acessórios por: "${termoBusca}"` : "Destaque o seu visual com os melhores complementos."}
+            </p>
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -89,7 +109,6 @@ export default function AcessoriosPage() {
           <div className="flex flex-col gap-1.5 mt-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Filtrar por</span>
             <div className="flex flex-wrap gap-2">
-              {/* ATUALIZADO VISUALMENTE: Retirado o botão de Pulseira */}
               {["Todos", "Relógio", "Óculos", "Boné", "Joias", "Outros"].map((sub) => (
                 <button
                   key={sub}
@@ -110,6 +129,7 @@ export default function AcessoriosPage() {
         {produtosFiltrados.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl border p-6">
             <p className="text-zinc-500 text-sm">Nenhum acessório encontrado com esses filtros.</p>
+            <p className="text-xs text-zinc-400 mt-1">Tente mudar o termo da busca ou selecionar outra combinação!</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">

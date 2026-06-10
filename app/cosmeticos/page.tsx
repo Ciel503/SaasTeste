@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation"; // 🔥 Importado para capturar a busca do Header
 import BotaoCarrinho from "../../components/botaocarrinho";
 
 interface Produto {
@@ -23,6 +24,10 @@ export default function CosmeticosPage() {
   // Filtro de subcategoria ativo (Inicia mostrando tudo)
   const [subcategoriaSelecionada, setSubcategoriaSelecionada] = useState<string>("Todos");
 
+  // 🔥 Captura o termo de busca digitado na URL
+  const searchParams = useSearchParams();
+  const termoBusca = searchParams.get('busca') || '';
+
   // 1. Busca os dados de Cosméticos usando o termo limpo 'Cosmeticos' na API inteligente
   useEffect(() => {
     async function buscarCosmeticos() {
@@ -42,16 +47,27 @@ export default function CosmeticosPage() {
     buscarCosmeticos();
   }, []);
 
-  // 2. Filtra a tela instantaneamente quando o cliente clica nas abas de produtos
+  // 2. Filtra a tela instantaneamente quando o cliente clica nas abas OU digita na busca
   useEffect(() => {
     let resultado = todosProdutos;
 
+    // 🔥 FILTRO DA BARRA DE BUSCA: Valida se o termo bate com o nome, descrição ou subcategoria do cosmético
+    if (termoBusca.trim() !== "") {
+      const termo = termoBusca.toLowerCase();
+      resultado = resultado.filter(p => 
+        p.nome.toLowerCase().includes(termo) || 
+        p.descricao.toLowerCase().includes(termo) ||
+        p.subcategoria.toLowerCase().includes(termo)
+      );
+    }
+
+    // Filtro original por aba de subcategoria
     if (subcategoriaSelecionada !== "Todos") {
       resultado = resultado.filter(p => p.subcategoria === subcategoriaSelecionada);
     }
 
     setProdutosFiltrados(resultado);
-  }, [subcategoriaSelecionada, todosProdutos]);
+  }, [subcategoriaSelecionada, todosProdutos, termoBusca]); // 🔥 termoBusca adicionado aqui
 
   if (carregando) {
     return <div className="text-center py-12 text-zinc-500 bg-zinc-50 min-h-screen">Carregando vitrine de cosméticos...</div>;
@@ -65,7 +81,10 @@ export default function CosmeticosPage() {
         <div className="max-w-7xl mx-auto flex flex-col gap-3">
           <div>
             <h1 className="text-xl font-black uppercase tracking-tight text-zinc-900">Fragrâncias & Cosméticos</h1>
-            <p className="text-xs text-zinc-500">Encontre os melhores perfumes, cremes e maquiagens do nosso catálogo real.</p>
+            <p className="text-xs text-zinc-500">
+              {/* 🔥 Mostra se há um termo sendo buscado na barra de navegação */}
+              {termoBusca ? `Buscando cosméticos por: "${termoBusca}"` : "Encontre os melhores perfumes, cremes e maquiagens do nosso catálogo real."}
+            </p>
           </div>
 
           {/* ABAS DE SELEÇÃO DIRETA */}
@@ -94,8 +113,8 @@ export default function CosmeticosPage() {
       <section className="max-w-7xl mx-auto px-2 sm:px-4 py-6">
         {produtosFiltrados.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl border p-6">
-            <p className="text-zinc-500 text-sm">Nenhum cosmético encontrado nesta categoria.</p>
-            <p className="text-xs text-zinc-400 mt-1">Fique ligado! Novos produtos serão adicionados em breve.</p>
+            <p className="text-zinc-500 text-sm">Nenhum cosmético encontrado para essa busca.</p>
+            <p className="text-xs text-zinc-400 mt-1">Tente mudar o termo da busca ou selecionar outra categoria!</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
