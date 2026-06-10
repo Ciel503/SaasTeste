@@ -100,19 +100,20 @@ export default function FormularioAdm() {
       </div>
 
       {/* FORMULÁRIO DINÂMICO UNIFICADO */}
-      <form onSubmit={handleUpload} className="flex flex-col gap-4 border border-zinc-200 p-5 rounded-2xl bg-white shadow-sm">
+            {/* 🎨 FORMULÁRIO CORRIGIDO: CAMPOS ESCUROS COM LETRAS BRANCAS */}
+      <form onSubmit={handleUpload} className="flex flex-col gap-4 border border-zinc-800 p-5 rounded-2xl bg-zinc-900 shadow-xl text-white">
         
         {/* Foto */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Foto</label>
-          <div className="border-2 border-dashed border-zinc-300 rounded-xl p-4 text-center bg-zinc-50 flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Foto do Produto</label>
+          <div className="border-2 border-dashed border-zinc-800 rounded-xl p-4 text-center bg-zinc-950 flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden group hover:border-pink-500/50 transition-colors">
             {previewUrl ? (
               <div className="w-full flex flex-col items-center gap-2 z-10">
-                <img src={previewUrl} alt="Preview" className="max-h-[100px] w-auto object-contain rounded border bg-white" />
-                <button type="button" onClick={() => { setPreviewUrl(null); if (inputFileRef.current) inputFileRef.current.value = ''; }} className="text-xs text-red-500 font-semibold hover:underline">Trocar</button>
+                <img src={previewUrl} alt="Preview" className="max-h-[110px] w-auto object-contain rounded border border-zinc-800 bg-zinc-900" />
+                <button type="button" onClick={() => { setPreviewUrl(null); if (inputFileRef.current) inputFileRef.current.value = ''; }} className="text-xs text-pink-500 font-bold hover:text-pink-400 transition-colors">Trocar Foto</button>
               </div>
             ) : (
-              <p className="text-[11px] text-zinc-400 font-medium">📸 Escolha a Imagem</p>
+              <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wide group-hover:text-zinc-400 transition-colors">📸 Adicionar Foto</p>
             )}
             <input ref={inputFileRef} type="file" accept="image/*" required={!previewUrl} onChange={handleMudarImagem} className="absolute inset-0 opacity-0 cursor-pointer" />
           </div>
@@ -121,107 +122,74 @@ export default function FormularioAdm() {
         {/* Nome */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Nome</label>
-          <input ref={nomeRef} type="text" placeholder="Nome do produto" required className="border p-2.5 rounded-lg text-sm bg-white focus:outline-none focus:border-pink-500" />
+          <input ref={nomeRef} type="text" placeholder="Ex: Camiseta Véstia Premium" required className="border border-zinc-800 p-3 rounded-lg text-sm bg-zinc-950 text-white placeholder-zinc-600 focus:outline-none focus:border-pink-500 transition-colors w-full" />
         </div>
 
         {/* Preço */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Preço (R$)</label>
-          <input ref={precoRef} type="number" step="0.01" placeholder="99.90" required className="border p-2.5 rounded-lg text-sm bg-white focus:outline-none" />
+          <input ref={precoRef} type="number" step="0.01" placeholder="99.90" required className="border border-zinc-800 p-3 rounded-lg text-sm bg-zinc-950 text-white placeholder-zinc-600 focus:outline-none focus:border-pink-500 transition-colors w-full" />
         </div>
 
-        {/* Gênero (Exibe para Roupas e Acessórios, oculta em Cosméticos) */}
+        {/* Gênero */}
         {abaAtiva !== 'cosmeticos' && (
           <div className="flex flex-col gap-1">
             <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Gênero</label>
-            <select ref={generoRef} required className="border p-2.5 rounded-lg text-sm bg-white focus:outline-none">
-              <option value="">Selecione</option>
-              <option value="Masculino">🙋‍♂️ Masculino</option>
-              <option value="Feminino">🙋‍♀️ Feminino</option>
+            <select ref={generoRef} required className="border border-zinc-800 p-3 rounded-lg text-sm bg-zinc-950 text-white focus:outline-none focus:border-pink-500 transition-colors w-full">
+              <option value="" className="bg-zinc-900 text-zinc-500">Selecione o gênero</option>
+              <option value="Masculino" className="bg-zinc-900 text-white">🙋‍♂️ Masculino</option>
+              <option value="Feminino" className="bg-zinc-900 text-white">🙋‍♀️ Feminino</option>
             </select>
           </div>
         )}
 
-        {/* Tamanho (Exibido para Roupas. Nota: Se for Calçado, pode salvar o tamanho como texto ou número livre) */}
-       {/* Tamanho (Exibido para Roupas. Atualizado com numerações menores!) */}
-{abaAtiva === 'roupas' && (
-  <div className="flex flex-col gap-1">
-    <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Tamanho / Numeração</label>
-    <select ref={tamanhoRef} required className="border p-2.5 rounded-lg text-sm bg-white focus:outline-none">
-      <option value="">Selecione</option>
-      
-      {/* Grade de Letras padrão */}
-      <option value="PP">PP</option>
-      <option value="P">P</option>
-      <option value="M">M</option>
-      <option value="G">G</option>
-      <option value="GG">GG</option>
-      <option value="XG">XG</option>
+        {/* Tamanho / Numeração */}
+        {abaAtiva === 'roupas' && (
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Tamanho / Numeração</label>
+            <select ref={tamanhoRef} required className="border border-zinc-800 p-3 rounded-lg text-sm bg-zinc-950 text-white focus:outline-none focus:border-pink-500 transition-colors w-full">
+              <option value="" className="bg-zinc-900 text-zinc-500">Selecione o tamanho</option>
+              <option value="PP" className="bg-zinc-900 text-white">PP</option>
+              <option value="P" className="bg-zinc-900 text-white">P</option>
+              <option value="M" className="bg-zinc-900 text-white">M</option>
+              <option value="G" className="bg-zinc-900 text-white">G</option>
+              <option value="GG" className="bg-zinc-900 text-white">GG</option>
+              <option value="XG" className="bg-zinc-900 text-white">XG</option>
+              {/* Loop inteligente dos tamanhos de calçados do 19 ao 44 */}
+              {Array.from({ length: 26 }, (_, i) => 19 + i).map(num => (
+                <option key={num} value={num.toString()} className="bg-zinc-900 text-white">{num}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
-      {/* Grade de Calçados Completa (Do 33 ao 44) */}
-      <option value="19">19</option>
-      <option value="20">20</option>
-      <option value="21">21</option>
-      <option value="22">22</option>
-      <option value="23">23</option>
-      <option value="24">24</option>
-      <option value="25">25</option>
-      <option value="26">26</option>
-      <option value="27">27</option>
-      <option value="28">28</option>
-      <option value="29">29</option>
-      <option value="30">30</option>
-      <option value="31">31</option>
-      <option value="32">32</option>
-      <option value="33">33</option>
-      <option value="34">34</option>
-      <option value="35">35</option>
-      <option value="36">36</option>
-      <option value="37">37</option>
-      <option value="38">38</option>
-      <option value="39">39</option>
-      <option value="40">40</option>
-      <option value="41">41</option>
-      <option value="42">42</option>
-      <option value="43">43</option>
-      <option value="44">44</option>
-    </select>
-  </div>
-)}
-
-
-        {/* Subcategoria Dinâmica */}
+        {/* Subcategoria */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Subcategoria</label>
-          <select ref={subcategoriaRef} required className="border p-2.5 rounded-lg text-sm bg-white focus:outline-none">
-            <option value="">Selecione</option>
-            {/* Opções de Roupas (Calçados incluído aqui!) */}
-            {abaAtiva === 'roupas' && (
+          <select ref={subcategoriaRef} required className="border border-zinc-800 p-3 rounded-lg text-sm bg-zinc-950 text-white focus:outline-none focus:border-pink-500 transition-colors w-full">
+            <option value="" className="bg-zinc-900 text-zinc-500">Selecione a subcategoria</option>
+            {abaAtiva === 'roupas' ? (
               <>
-                <option value="Blusa">Blusa</option>
-                <option value="Calça">Calça</option>
-                <option value="Short">Short</option>
-                <option value="Íntima">Íntima</option>
-                <option value="Calçados">Calçados (Tênis/Sapato)</option>
+                <option value="Blusa" className="bg-zinc-900 text-white">Blusa</option>
+                <option value="Calça" className="bg-zinc-900 text-white">Calça</option>
+                <option value="Short" className="bg-zinc-900 text-white">Short</option>
+                <option value="Íntima" className="bg-zinc-900 text-white">Íntima</option>
+                <option value="Calçados" className="bg-zinc-900 text-white">Calçados</option>
               </>
-            )}
-            {/* Opções de Acessórios (Sem Pulseira) */}
-            {abaAtiva === 'acessorios' && (
+            ) : abaAtiva === 'acessorios' ? (
               <>
-                <option value="Relógio">Relógio</option>
-                <option value="Óculos">Óculos</option>
-                <option value="Boné">Boné</option>
-                <option value="Joias">Joias / Pulseiras</option>
-                <option value="Outros">Outros</option>
+                <option value="Relógio" className="bg-zinc-900 text-white">Relógio</option>
+                <option value="Óculos" className="bg-zinc-900 text-white">Óculos</option>
+                <option value="Boné" className="bg-zinc-900 text-white">Boné</option>
+                <option value="Joias" className="bg-zinc-900 text-white">Joias</option>
+                <option value="Outros" className="bg-zinc-900 text-white">Outros</option>
               </>
-            )}
-            {/* Opções de Cosméticos */}
-            {abaAtiva === 'cosmeticos' && (
+            ) : (
               <>
-                <option value="Perfume">Perfume</option>
-                <option value="Creme">Creme / Hidratante</option>
-                <option value="Maquiagem">Maquiagem</option>
-                <option value="Outros">Outros</option>
+                <option value="Perfume" className="bg-zinc-900 text-white">Perfume</option>
+                <option value="Creme" className="bg-zinc-900 text-white">Creme</option>
+                <option value="Maquiagem" className="bg-zinc-900 text-white">Maquiagem</option>
+                <option value="Outros" className="bg-zinc-900 text-white">Outros</option>
               </>
             )}
           </select>
@@ -230,14 +198,20 @@ export default function FormularioAdm() {
         {/* Descrição */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Descrição</label>
-          <textarea ref={descricaoRef} rows={3} placeholder="Detalhes do produto..." required className="border p-2.5 rounded-lg text-sm bg-white resize-none focus:outline-none focus:border-pink-500" />
+          <textarea ref={descricaoRef} rows={3} placeholder="Diga os detalhes da peça, tecido, composição..." required className="border border-zinc-800 p-3 rounded-lg text-sm bg-zinc-950 text-white placeholder-zinc-600 focus:outline-none focus:border-pink-500 transition-colors resize-none w-full" />
         </div>
 
-        {/* Botão Submeter */}
-        <button type="submit" disabled={carregando} className="bg-zinc-950 text-white p-3 rounded-xl font-bold text-xs uppercase tracking-wider disabled:bg-zinc-400 mt-2 hover:bg-pink-600 transition-colors cursor-pointer">
-          {carregando ? 'Cadastrando...' : 'Cadastrar Produto'}
+        {/* Botão Cadastrar */}
+        <button 
+          type="submit" 
+          disabled={carregando}
+          className="w-full bg-pink-600 hover:bg-pink-500 text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-widest transition-colors cursor-pointer disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed mt-2 shadow-lg shadow-pink-600/10"
+        >
+          {carregando ? 'Salvando no Neon...' : 'Cadastrar Produto'}
         </button>
+
       </form>
+
     </>
   );
 }
