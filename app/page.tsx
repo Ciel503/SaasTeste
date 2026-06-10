@@ -18,15 +18,39 @@ interface Produto {
   imagem_url: string;
 }
 
-export default async function Home() {
+// 🔥 Ajustado: A função agora recebe searchParams tipado corretamente
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ busca?: string }>;
+}) {
   const sql = neon(`${process.env.FRANeon_DATABASE_URL}`);
 
-  // 2. Query atualizada trazendo os novos campos da tabela recém-criada
-  const produtos = (await sql`
-    SELECT id, nome, preco, categoria, genero, subcategoria, tamanho, descricao, imagem_url 
-    FROM produtos 
-    ORDER BY id DESC
-  `) as Produto[];
+  // 🔥 Captura e aguarda o termo de busca vindo da URL do Header
+  const params = await searchParams;
+  const termoBusca = params.busca || "";
+
+  let produtos: Produto[] = [];
+
+  // 🔥 Lógica: Se houver busca, filtra com ILIKE. Se não, traz tudo ordenado por ID DESC
+  if (termoBusca.trim() !== "") {
+    const termoQuery = `%${termoBusca}%`;
+    produtos = (await sql`
+      SELECT id, nome, preco, categoria, genero, subcategoria, tamanho, descricao, imagem_url 
+      FROM produtos 
+      WHERE nome ILIKE ${termoQuery} 
+         OR descricao ILIKE ${termoQuery} 
+         OR subcategoria ILIKE ${termoQuery}
+         OR categoria ILIKE ${termoQuery}
+      ORDER BY id DESC
+    `) as Produto[];
+  } else {
+    produtos = (await sql`
+      SELECT id, nome, preco, categoria, genero, subcategoria, tamanho, descricao, imagem_url 
+      FROM produtos 
+      ORDER BY id DESC
+    `) as Produto[];
+  }
 
   return (
     <div className="w-full bg-zinc-50 min-h-screen pb-20">
@@ -45,7 +69,10 @@ export default async function Home() {
       {/* VITRINE */}
       <section className="max-w-7xl mx-auto px-2 sm:px-4 py-8">
         <div className="flex flex-col mb-6 px-1">
-          <h2 className="text-base sm:text-lg font-black tracking-tight uppercase text-zinc-900">Destaques</h2>
+          <h2 className="text-base sm:text-lg font-black tracking-tight uppercase text-zinc-900">
+            {/* 🔥 Se tiver buscando algo, mostra o título adequado */}
+            {termoBusca ? `Resultados para: "${termoBusca}"` : "Destaques"}
+          </h2>
           <p className="text-xs text-zinc-500">Todos os produtos disponíveis ({produtos.length} itens).</p>
         </div>
 
@@ -71,7 +98,7 @@ export default async function Home() {
                     loading="lazy"
                   />
                   
-                  {/* VALIDAÇÃO DE TAMANHO: Só mostra a etiqueta se o produto realmente tiver tamanho salvo */}
+                  {/* VALIDAÇÃO DE TAMANHO */}
                   {produto.tamanho && (
                     <span className="absolute top-2 right-2 bg-zinc-950/80 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
                       {produto.tamanho}
@@ -82,13 +109,12 @@ export default async function Home() {
                 {/* CONTEÚDO */}
                 <div className="p-2 sm:p-3 flex flex-col flex-1 gap-1">
                   
-                  {/* TAGS INFERIORES: Mostra a Categoria Principal e a Subcategoria lado a lado */}
+                  {/* TAGS INFERIORES */}
                   <div className="flex flex-wrap items-center gap-1 text-[9px] font-semibold uppercase tracking-wider">
                     <span className="text-pink-600">{produto.categoria}</span>
                     <span className="text-zinc-300">•</span>
                     <span className="text-zinc-500">{produto.subcategoria}</span>
                     
-                    {/* Só exibe o gênero ao lado se ele existir (ex: não aparece em cosméticos) */}
                     {produto.genero && (
                       <>
                         <span className="text-zinc-300">•</span>

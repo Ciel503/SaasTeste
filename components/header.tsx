@@ -2,10 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation"; // 🔥 Importação do Next.js
 import { ShoppingBag, Heart, Search, User, Home, Sparkles, Shirt, Footprints } from "lucide-react";
 
 export default function Header() {
     const [totalItens, setTotalItens] = useState(0);
+    const router = useRouter(); // 🔥 Instancia o roteador
+    const searchParams = useSearchParams(); // 🔥 Pega os parâmetros da URL
+    
+    // 🔥 Pega o termo que já está na URL (se houver) para manter o input preenchido
+    const [busca, setBusca] = useState(searchParams.get('busca') || '');
 
     const atualizarContador = () => {
         if (typeof window !== 'undefined') {
@@ -26,6 +32,16 @@ export default function Header() {
             window.removeEventListener('carrinhoAtualizado', atualizarContador);
         };
     }, []);
+
+    // 🔥 Função única para atualizar a URL conforme o usuário digita
+    const handleBuscaChange = (termo: string) => {
+        setBusca(termo);
+        if (termo.trim() === '') {
+            router.push('/'); // Se limpar a busca, volta para a rota limpa
+        } else {
+            router.push(`/?busca=${encodeURIComponent(termo)}`); // Atualiza a URL em tempo real
+        }
+    };
 
     return (
         <>
@@ -49,8 +65,15 @@ export default function Header() {
                         <Link href="/cosmeticos" className="hover:text-pink-200 transition-colors">Cosméticos</Link>
                     </nav>
 
+                    {/* 🔥 INPUT COMPUTADOR ATUALIZADO */}
                     <div className="relative w-full max-w-xs hidden md:block">
-                        <input type="text" placeholder="Buscar produtos..." className="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2 pl-4 pr-10 text-sm text-white focus:outline-none focus:border-pink-500 transition-all" />
+                        <input 
+                            type="text" 
+                            value={busca}
+                            onChange={(e) => handleBuscaChange(e.target.value)}
+                            placeholder="Buscar produtos..." 
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2 pl-4 pr-10 text-sm text-white focus:outline-none focus:border-pink-500 transition-all" 
+                        />
                         <Search className="absolute right-3 top-2.5 w-4 h-4 text-zinc-500" />
                     </div>
 
@@ -71,15 +94,22 @@ export default function Header() {
                     </div>
                 </div>
 
+                {/* 🔥 INPUT CELULAR ATUALIZADO */}
                 <div className="w-full px-4 pb-3 md:hidden bg-black">
                     <div className="relative w-full">
-                        <input type="text" placeholder="O que você está procurando hoje?" className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-zinc-500 focus:outline-none" />
+                        <input 
+                            type="text" 
+                            value={busca}
+                            onChange={(e) => handleBuscaChange(e.target.value)}
+                            placeholder="O que você está procurando hoje?" 
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-zinc-500 focus:outline-none" 
+                        />
                         <Search className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
                     </div>
                 </div>
             </header>
 
-            {/* 2. BARRA INFERIOR CELULAR (Voltou a ter os 3 botões perfeitamente espaçados) */}
+            {/* 2. BARRA INFERIOR CELULAR */}
             <div className="fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-md border-t border-zinc-900 text-white md:hidden">
                 <div className="flex items-center justify-around h-16 text-center">
                     <Link href="/" className="flex flex-col items-center justify-center flex-1 text-zinc-400 hover:text-white">
