@@ -1,5 +1,8 @@
+'use client'; // 🔥 Transformado em Client Component para ler a rota atual
+
 import "./globals.css";
-import { Suspense } from "react"; // 🔥 1. Adicionado para liberar o build na Vercel
+import { Suspense } from "react";
+import { usePathname } from "next/navigation"; // 🔥 Hook para ler o caminho da URL
 import Header from "../components/header"; 
 
 export default function RootLayout({
@@ -7,18 +10,25 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+
+  // 🔥 Se a rota atual for "/adm", a variável vira true
+  const ehPaginaAdm = pathname?.startsWith('/adm');
+
   return (
     <html
       lang="pt-BR"
       className="h-full antialiased"
     >
       <body className="h-full flex flex-col bg-white text-gray-900">
-        {/* O Header precisa do Suspense por perto por usar hooks de busca da URL */}
-        <Suspense fallback={null}>
-          <Header />
-        </Suspense>
+        
+        {/* 🔥 Só renderiza o Header se NÃO for a página do ADM */}
+        {!ehPaginaAdm && (
+          <Suspense fallback={null}>
+            <Header />
+          </Suspense>
+        )}
 
-        {/* 🔥 2. Envolvemos o main com Suspense para blindar as páginas que usam busca */}
         <Suspense fallback={<div className="text-center py-12 text-zinc-500 bg-zinc-50 min-h-screen">Carregando...</div>}>
           <main className="flex-1">{children}</main>
         </Suspense>

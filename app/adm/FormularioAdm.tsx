@@ -1,5 +1,6 @@
 'use client';
 
+
 import { useState, useRef, ChangeEvent } from 'react';
 
 export default function FormularioAdm() {
@@ -142,23 +143,52 @@ export default function FormularioAdm() {
         )}
 
         {/* Tamanho (Exibido para Roupas. Nota: Se for Calçado, pode salvar o tamanho como texto ou número livre) */}
-        {abaAtiva === 'roupas' && (
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Tamanho / Numeração</label>
-            <select ref={tamanhoRef} required className="border p-2.5 rounded-lg text-sm bg-white focus:outline-none">
-              <option value="">Selecione</option>
-              <option value="P">P</option>
-              <option value="M">M</option>
-              <option value="G">G</option>
-              <option value="GG">GG</option>
-              <option value="38">38</option>
-              <option value="39">39</option>
-              <option value="40">40</option>
-              <option value="41">41</option>
-              <option value="42">42</option>
-            </select>
-          </div>
-        )}
+       {/* Tamanho (Exibido para Roupas. Atualizado com numerações menores!) */}
+{abaAtiva === 'roupas' && (
+  <div className="flex flex-col gap-1">
+    <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Tamanho / Numeração</label>
+    <select ref={tamanhoRef} required className="border p-2.5 rounded-lg text-sm bg-white focus:outline-none">
+      <option value="">Selecione</option>
+      
+      {/* Grade de Letras padrão */}
+      <option value="PP">PP</option>
+      <option value="P">P</option>
+      <option value="M">M</option>
+      <option value="G">G</option>
+      <option value="GG">GG</option>
+      <option value="XG">XG</option>
+
+      {/* Grade de Calçados Completa (Do 33 ao 44) */}
+      <option value="19">19</option>
+      <option value="20">20</option>
+      <option value="21">21</option>
+      <option value="22">22</option>
+      <option value="23">23</option>
+      <option value="24">24</option>
+      <option value="25">25</option>
+      <option value="26">26</option>
+      <option value="27">27</option>
+      <option value="28">28</option>
+      <option value="29">29</option>
+      <option value="30">30</option>
+      <option value="31">31</option>
+      <option value="32">32</option>
+      <option value="33">33</option>
+      <option value="34">34</option>
+      <option value="35">35</option>
+      <option value="36">36</option>
+      <option value="37">37</option>
+      <option value="38">38</option>
+      <option value="39">39</option>
+      <option value="40">40</option>
+      <option value="41">41</option>
+      <option value="42">42</option>
+      <option value="43">43</option>
+      <option value="44">44</option>
+    </select>
+  </div>
+)}
+
 
         {/* Subcategoria Dinâmica */}
         <div className="flex flex-col gap-1">
