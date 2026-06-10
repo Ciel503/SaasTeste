@@ -60,10 +60,7 @@ export default async function Home({
         <span className="text-pink-500 font-bold tracking-widest text-[10px] uppercase bg-pink-950/50 px-2.5 py-1 rounded-full border border-pink-500/30">
           Catálogo Geral
         </span>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight uppercase mt-2">
-          Estilo VÉSTIA
-        </h1>
-        <p className="text-zinc-400 text-xs mt-1">Sua vitrine de moda local sincronizada com o Neon.</p>
+      
       </section>
 
       {/* VITRINE */}
@@ -73,7 +70,7 @@ export default async function Home({
             {/* 🔥 Se tiver buscando algo, mostra o título adequado */}
             {termoBusca ? `Resultados para: "${termoBusca}"` : "Destaques"}
           </h2>
-          <p className="text-xs text-zinc-500">Todos os produtos disponíveis ({produtos.length} itens).</p>
+          <span className="text-xs text-zinc-500">Todos os produtos disponíveis ({produtos.length} itens).</span>
         </div>
 
         {produtos.length === 0 ? (
