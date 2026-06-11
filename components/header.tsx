@@ -59,7 +59,7 @@ const handleBuscaChange = (termo: string) => {
             <header className="w-full bg-black text-white sticky top-0 z-50 border-b border-gray-900">
                 <div className="w-full bg-pink-600 text-center py-1.5 text-[10px] sm:text-xs font-medium tracking-wider uppercase">
                     Em desenvovimento ATUALIZAÇÃO 1.4.30
-                    <Link href="/adm" className="ml-2 text-white/90 hover:text-white transition-colors font-bold">[Área ADM]</Link>
+                    <Link href="/adm" className="ml-2 text-white/90 hover:text-white transition-colors bg-black font-bold">[Área ADM]</Link>
                 </div>
 
                 <div className="max-w-7xl mx-auto px-4 h-16 sm:h-20 flex items-center justify-between gap-4">
