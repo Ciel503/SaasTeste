@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation"; // 🔥 Importado para capturar a busca do Header
+import { useSearchParams } from "next/navigation"; 
 import BotaoCarrinho from "../../components/botaocarrinho";
 
 interface Produto {
@@ -24,20 +24,27 @@ export default function AcessoriosPage() {
   const [generoSelecionado, setGeneroSelecionado] = useState<string>("Todos");
   const [subcategoriaSelecionada, setSubcategoriaSelecionada] = useState<string>("Todos");
 
-  // 🔥 Captura o termo de busca digitado que o seu Header atualiza na URL
   const searchParams = useSearchParams();
   const termoBusca = searchParams.get('busca') || '';
 
   useEffect(() => {
     async function buscarAcessorios() {
       try {
-        // Fetch usando termo minúsculo sem acento mapeado na sua API
+        // Chame a sua rota dedicada de acessórios
         const response = await fetch('/api/produtos?categoria=acessorios');
         if (!response.ok) throw new Error("Erro na requisição");
         
         const dados = (await response.json()) as Produto[];
-        setTodosProdutos(dados);
-        setProdutosFiltrados(dados);
+        
+        // 🛡️ TRAVA DE SEGURANÇA: Filtra no front para aceitar com ou sem acento
+        const apenasAcessorios = dados.filter(produto => {
+          if (!produto.categoria) return false;
+          const cat = produto.categoria.toLowerCase().trim();
+          return cat === 'acessorios' || cat === 'acessórios';
+        });
+
+        setTodosProdutos(apenasAcessorios);
+        setProdutosFiltrados(apenasAcessorios);
       } catch (error) {
         console.error("Erro ao buscar acessórios:", error);
       } finally {
@@ -47,11 +54,9 @@ export default function AcessoriosPage() {
     buscarAcessorios();
   }, []);
 
-  // 2. Toda vez que o cliente clicar em um filtro OU digitar na busca, essa lógica roda
   useEffect(() => {
     let resultado = todosProdutos;
 
-    // 🔥 FILTRO DA BARRA DE BUSCA: Cruza o texto digitado com nome, descrição ou subcategoria
     if (termoBusca.trim() !== "") {
       const termo = termoBusca.toLowerCase();
       resultado = resultado.filter(p => 
@@ -68,7 +73,7 @@ export default function AcessoriosPage() {
       resultado = resultado.filter(p => p.subcategoria === subcategoriaSelecionada);
     }
     setProdutosFiltrados(resultado);
-  }, [generoSelecionado, subcategoriaSelecionada, todosProdutos, termoBusca]); // 🔥 termoBusca adicionado para atualizar em tempo real
+  }, [generoSelecionado, subcategoriaSelecionada, todosProdutos, termoBusca]);
 
   if (carregando) {
     return <div className="text-center py-12 text-zinc-500 bg-zinc-50 min-h-screen">Carregando vitrine de acessórios...</div>;
@@ -81,7 +86,6 @@ export default function AcessoriosPage() {
           <div>
             <h1 className="text-xl font-black uppercase tracking-tight text-zinc-900">Acessórios</h1>
             <p className="text-xs text-zinc-500">
-              {/* 🔥 Mostra se há uma busca por texto ativa na vitrine */}
               {termoBusca ? `Buscando acessórios por: "${termoBusca}"` : "Destaque o seu visual com os melhores complementos."}
             </p>
           </div>
