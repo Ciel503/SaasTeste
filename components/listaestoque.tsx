@@ -32,7 +32,7 @@ export default function ListaEstoque() {
 
   const carregarEstoque = async () => {
     try {
-      const response = await fetch('/api/produtos/todos');
+      const response = await fetch('/api/produtos');
       if (response.ok) {
         const dados = await response.json();
         setEstoque(dados);
