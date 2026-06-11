@@ -55,13 +55,7 @@ export default async function Home({
   return (
     <div className="w-full bg-zinc-50 min-h-screen pb-20">
       
-      {/* SEÇÃO HERO */}
-      <section className="w-full bg-zinc-950 py-12 text-center text-white px-4">
-        <span className="text-pink-500 font-bold tracking-widest text-[10px] uppercase bg-pink-950/50 px-2.5 py-1 rounded-full border border-pink-500/30">
-          Catálogo Geral
-        </span>
-      
-      </section>
+     
 
       {/* VITRINE */}
       <section className="max-w-7xl mx-auto px-2 sm:px-4 py-8">
