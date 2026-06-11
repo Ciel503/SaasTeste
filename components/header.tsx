@@ -58,7 +58,7 @@ const handleBuscaChange = (termo: string) => {
             {/* 1. TOPO COMPUTADOR (3 Categorias Limpas) */}
             <header className="w-full bg-black text-white sticky top-0 z-50 border-b border-gray-900">
                 <div className="w-full bg-pink-600 text-center py-1.5 text-[10px] sm:text-xs font-medium tracking-wider uppercase">
-                    Em desenvovimento ATUALIZAÇÃO 1.5.30
+                    Em desenvovimento ATUALIZAÇÃO 1.6.30
                     <Link href="/adm" className="ml-2 text-white/90 hover:text-white transition-colors bg-black font-bold">[Área ADM]</Link>
                 </div>
 
