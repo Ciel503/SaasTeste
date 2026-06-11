@@ -56,7 +56,7 @@ export default function FormularioAdm() {
         formData.append('id', idProdutoEditando.toString());
       }
 
-      const rotaUrl = idProdutoEditando ? '/api/editar' : '/api/roupas/upload';
+      const rotaUrl = idProdutoEditando ? '/api/editar' : '/api/produtos';
       const response = await fetch(rotaUrl, { method: 'POST', body: formData });
 
       if (response.ok) {
