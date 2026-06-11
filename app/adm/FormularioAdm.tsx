@@ -1,19 +1,16 @@
 'use client';
 
-
 import { useState, useRef, ChangeEvent } from 'react';
 
 export default function FormularioAdm() {
   // Controle de abas principais (Roupas, Acessórios, Cosméticos)
   const [abaAtiva, setAbaAtiva] = useState<'roupas' | 'acessorios' | 'cosmeticos'>('roupas');
   
-  // Referências dos elementos comuns do formulário
+  // Referências dos elementos do formulário
   const inputFileRef = useRef<HTMLInputElement>(null);
   const nomeRef = useRef<HTMLInputElement>(null);
   const precoRef = useRef<HTMLInputElement>(null);
   const descricaoRef = useRef<HTMLTextAreaElement>(null);
-  
-  // Referências dos elementos dinâmicos
   const generoRef = useRef<HTMLSelectElement>(null);
   const tamanhoRef = useRef<HTMLSelectElement>(null);
   const subcategoriaRef = useRef<HTMLSelectElement>(null);
@@ -21,30 +18,28 @@ export default function FormularioAdm() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [statusMensagem, setStatusMensagem] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null);
-  const [idProdutoEditando, setIdProdutoEditando] = useState<number | null>(null); // Para controlar se estamos editando ou criando
-  
+  const [idProdutoEditando, setIdProdutoEditando] = useState<number | null>(null);
 
   const handleMudarImagem = (event: ChangeEvent<HTMLInputElement>) => {
     const arquivo = event.target.files?.[0];
     setPreviewUrl(arquivo ? URL.createObjectURL(arquivo) : null);
   };
 
-    const handleUpload = async (event: React.FormEvent) => {
+  const handleUpload = async (event: React.FormEvent) => {
     event.preventDefault();
-    setStatusMensagem(null); // Limpa avisos anteriores antes de começar
+    setStatusMensagem(null);
 
-    // 1. Se for cadastro novo, a foto é obrigatória. Se for edição, pode manter a antiga!
     if (!idProdutoEditando && !inputFileRef.current?.files?.length) {
       setStatusMensagem({ tipo: 'erro', texto: '⚠️ Selecione uma foto do produto!' });
       return;
     }
 
     setCarregando(true);
-    const file = inputFileRef.current?.files?.[0]; // Captura o arquivo com segurança se houver
+    const file = inputFileRef.current?.files?.[0];
 
     try {
       const formData = new FormData();
-      if (file) formData.append('file', file); // Só envia a foto se uma nova foi escolhida
+      if (file) formData.append('file', file);
       
       formData.append('nome', nomeRef.current?.value || '');
       formData.append('preco', precoRef.current?.value || '0');
@@ -57,33 +52,19 @@ export default function FormularioAdm() {
       formData.append('subcategoria', subcategoriaRef.current?.value || '');
       formData.append('descricao', descricaoRef.current?.value || '');
 
-      // 2. Se estiver editando, injeta o ID no FormData para a API saber quem atualizar
       if (idProdutoEditando) {
         formData.append('id', idProdutoEditando.toString());
       }
 
-      // 3. Escolhe dinamicamente a API de cadastro ou a sua real de edição /api/editar
       const rotaUrl = idProdutoEditando ? '/api/editar' : '/api/roupas/upload';
       const response = await fetch(rotaUrl, { method: 'POST', body: formData });
 
       if (response.ok) {
-        // 4. Mensagem inteligente baseada na ação, ativando o Toast flutuante (Sem usar alert)
-        const msgSucesso = idProdutoEditando ? '✅ Alterações salvas com sucesso no Neon!' : `✅ ${cat} cadastrado(a) com sucesso!`;
+        const msgSucesso = idProdutoEditando ? '✅ Alterações salvas!' : `✅ ${cat} cadastrado!`;
         setStatusMensagem({ tipo: 'sucesso', texto: msgSucesso });
 
-        // 5. SOLTA O GRITO: Avisa a ListaEstoque lá embaixo para atualizar na hora sem dar F5
         window.dispatchEvent(new Event("estoqueAtualizado"));
 
-        // Limpa as referências e desliga o modo de edição automaticamente
-              if (response.ok) {
-        // Mensagem inteligente baseada na ação, ativando o Toast flutuante
-        const msgSucesso = idProdutoEditando ? '✅ Alterações salvas com sucesso no Neon!' : `✅ ${cat} cadastrado(a) com sucesso!`;
-        setStatusMensagem({ tipo: 'sucesso', texto: msgSucesso });
-
-        // 🔥 SOLTA O GRITO: Avisa a ListaEstoque lá embaixo para atualizar na hora sem dar F5
-        window.dispatchEvent(new Event("estoqueAtualizado"));
-
-        // 🔥 LIMPEZA DIRETA: Reseta os campos para o próximo cadastro novo
         setPreviewUrl(null);
         if (inputFileRef.current) inputFileRef.current.value = '';
         if (nomeRef.current) nomeRef.current.value = '';
@@ -93,182 +74,170 @@ export default function FormularioAdm() {
         if (tamanhoRef.current) tamanhoRef.current.value = '';
         if (subcategoriaRef.current) subcategoriaRef.current.value = '';
 
-        // Faz o aviso flutuante sumir sozinho após 4 segundos
-        setTimeout(() => setStatusMensagem(null), 4000);
-      }
-
+        setTimeout(() => setStatusMensagem(null), 3000);
       } else {
-        setStatusMensagem({ tipo: 'erro', texto: '❌ Erro ao salvar dados no Neon.' });
+        setStatusMensagem({ tipo: 'erro', texto: '❌ Erro ao salvar dados.' });
       }
     } catch (e) {
       console.error(e);
-      setStatusMensagem({ tipo: 'erro', texto: '❌ Erro na conexão com o banco.' });
+      setStatusMensagem({ tipo: 'erro', texto: '❌ Erro na conexão.' });
     } finally {
       setCarregando(false);
     }
   };
 
-
   return (
     <>
-      {/* SELETOR DE ABAS PRINCIPAIS */}
-      <div className="flex bg-zinc-200 p-1 rounded-xl mb-6 font-semibold border border-zinc-300">
-        {(['roupas', 'acessorios', 'cosmeticos'] as const).map((aba) => (
-          <button
-            key={aba}
-            type="button"
-            onClick={() => {
-              setAbaAtiva(aba);
-              // Limpa os seletores dinâmicos ao trocar de aba para evitar lixo de estado
-              if (generoRef.current) generoRef.current.value = '';
-              if (tamanhoRef.current) tamanhoRef.current.value = '';
-              if (subcategoriaRef.current) subcategoriaRef.current.value = '';
-            }}
-            className={`flex-1 text-xs py-2 rounded-lg uppercase tracking-wider transition-all cursor-pointer ${
-              abaAtiva === aba ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
-            }`}
-          >
-            {aba === 'acessorios' ? 'Acessórios' : aba === 'cosmeticos' ? 'Cosméticos' : 'Roupas'}
-          </button>
-        ))}
-      </div>
-
-            {/* 🚨 NOTIFICAÇÃO FLUTUANTE (TOAST) NO VERDE ESMERALDA */}
+      {/* NOTIFICAÇÃO TOAST */}
       {statusMensagem && (
-        <div className="fixed inset-x-4 bottom-20 sm:bottom-6 sm:left-auto sm:right-6 z-50 flex justify-center pointer-events-none animate-in fade-in slide-in-from-bottom-5 duration-300">
-          <div className={`p-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-3 border shadow-2xl pointer-events-auto backdrop-blur-md ${
-            statusMensagem.tipo === 'sucesso' 
-              ? 'bg-zinc-900/95 text-emerald-400 border-emerald-500 shadow-emerald-500/10' // 🔥 Mudado para o verde esmeralda!
-              : 'bg-red-950/95 text-red-400 border-red-500'
+        <div className="fixed inset-x-4 bottom-6 z-50 flex justify-center pointer-events-none">
+          <div className={`p-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 border shadow-2xl backdrop-blur-md ${
+            statusMensagem.tipo === 'sucesso' ? 'bg-zinc-900/95 text-emerald-400 border-emerald-500' : 'bg-red-950/95 text-red-400 border-red-500'
           }`}>
-            {statusMensagem.tipo === 'sucesso' ? (
-              /* Círculo Verde com o visto ✓ pulando */
-              <div className="w-5 h-5 rounded-full bg-emerald-500 text-zinc-950 flex items-center justify-center text-[11px] font-black scale-110 animate-bounce">
-                ✓
-              </div>
-            ) : (
-              <span className="text-sm">⚠️</span>
-            )}
             <span>{statusMensagem.texto}</span>
           </div>
         </div>
       )}
 
-
-
-
-
-      <form onSubmit={handleUpload} className="flex flex-col gap-4 border border-zinc-800 p-5 rounded-2xl bg-zinc-900 shadow-xl text-white">
+      {/* FORMULÁRIO ULTRA COMPACTO */}
+      <form onSubmit={handleUpload} className="flex flex-col gap-2.5 border border-zinc-900 p-4 rounded-xl bg-zinc-900 text-white w-full">
         
-        {/* Foto */}
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Foto do Produto</label>
-          <div className="border-2 border-dashed border-zinc-800 rounded-xl p-4 text-center bg-zinc-950 flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden group hover:border-pink-500/50 transition-colors">
-            {previewUrl ? (
-              <div className="w-full flex flex-col items-center gap-2 z-10">
-                <img src={previewUrl} alt="Preview" className="max-h-[110px] w-auto object-contain rounded border border-zinc-800 bg-zinc-900" />
-                <button type="button" onClick={() => { setPreviewUrl(null); if (inputFileRef.current) inputFileRef.current.value = ''; }} className="text-xs text-pink-500 font-bold hover:text-pink-400 transition-colors">Trocar Foto</button>
-              </div>
-            ) : (
-              <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wide group-hover:text-zinc-400 transition-colors">📸 Adicionar Foto</p>
-            )}
-            <input ref={inputFileRef} type="file" accept="image/*" required={!previewUrl} onChange={handleMudarImagem} className="absolute inset-0 opacity-0 cursor-pointer" />
-          </div>
-        </div>
-
-        {/* Nome */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Nome</label>
-          <input ref={nomeRef} type="text" placeholder="Ex: Camiseta Véstia Premium" required className="border border-zinc-800 p-3 rounded-lg text-sm bg-zinc-950 text-white placeholder-zinc-600 focus:outline-none focus:border-pink-500 transition-colors w-full" />
-        </div>
-
-        {/* Preço */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Preço (R$)</label>
-          <input ref={precoRef} type="number" step="0.01" placeholder="99.90" required className="border border-zinc-800 p-3 rounded-lg text-sm bg-zinc-950 text-white placeholder-zinc-600 focus:outline-none focus:border-pink-500 transition-colors w-full" />
-        </div>
-
-        {/* Gênero */}
-        {abaAtiva !== 'cosmeticos' && (
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Gênero</label>
-            <select ref={generoRef} required className="border border-zinc-800 p-3 rounded-lg text-sm bg-zinc-950 text-white focus:outline-none focus:border-pink-500 transition-colors w-full">
-              <option value="" className="bg-zinc-900 text-zinc-500">Selecione o gênero</option>
-              <option value="Masculino" className="bg-zinc-900 text-white">🙋‍♂️ Masculino</option>
-              <option value="Feminino" className="bg-zinc-900 text-white">🙋‍♀️ Feminino</option>
-            </select>
-          </div>
-        )}
-
-        {/* Tamanho / Numeração */}
-        {abaAtiva === 'roupas' && (
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Tamanho / Numeração</label>
-            <select ref={tamanhoRef} required className="border border-zinc-800 p-3 rounded-lg text-sm bg-zinc-950 text-white focus:outline-none focus:border-pink-500 transition-colors w-full">
-              <option value="" className="bg-zinc-900 text-zinc-500">Selecione o tamanho</option>
-              <option value="PP" className="bg-zinc-900 text-white">PP</option>
-              <option value="P" className="bg-zinc-900 text-white">P</option>
-              <option value="M" className="bg-zinc-900 text-white">M</option>
-              <option value="G" className="bg-zinc-900 text-white">G</option>
-              <option value="GG" className="bg-zinc-900 text-white">GG</option>
-              <option value="XG" className="bg-zinc-900 text-white">XG</option>
-              {/* Loop inteligente dos tamanhos de calçados do 19 ao 44 */}
-              {Array.from({ length: 26 }, (_, i) => 19 + i).map(num => (
-                <option key={num} value={num.toString()} className="bg-zinc-900 text-white">{num}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Subcategoria */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Subcategoria</label>
-          <select ref={subcategoriaRef} required className="border border-zinc-800 p-3 rounded-lg text-sm bg-zinc-950 text-white focus:outline-none focus:border-pink-500 transition-colors w-full">
-            <option value="" className="bg-zinc-900 text-zinc-500">Selecione a subcategoria</option>
-            {abaAtiva === 'roupas' ? (
-              <>
-                <option value="Blusa" className="bg-zinc-900 text-white">Blusa</option>
-                <option value="Calça" className="bg-zinc-900 text-white">Calça</option>
-                <option value="Short" className="bg-zinc-900 text-white">Short</option>
-                <option value="Íntima" className="bg-zinc-900 text-white">Íntima</option>
-                <option value="Calçados" className="bg-zinc-900 text-white">Calçados</option>
-              </>
-            ) : abaAtiva === 'acessorios' ? (
-              <>
-                <option value="Relógio" className="bg-zinc-900 text-white">Relógio</option>
-                <option value="Óculos" className="bg-zinc-900 text-white">Óculos</option>
-                <option value="Boné" className="bg-zinc-900 text-white">Boné</option>
-                <option value="Joias" className="bg-zinc-900 text-white">Joias</option>
-                <option value="Outros" className="bg-zinc-900 text-white">Outros</option>
-              </>
-            ) : (
-              <>
-                <option value="Perfume" className="bg-zinc-900 text-white">Perfume</option>
-                <option value="Creme" className="bg-zinc-900 text-white">Creme</option>
-                <option value="Maquiagem" className="bg-zinc-900 text-white">Maquiagem</option>
-                <option value="Outros" className="bg-zinc-900 text-white">Outros</option>
-              </>
-            )}
+        {/* Cabeçalho do Form com Dropdown Embutido */}
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Novo Cadastro</span>
+          
+          <select 
+            value={abaAtiva}
+            onChange={(e) => {
+              setAbaAtiva(e.target.value as any);
+              if (generoRef.current) generoRef.current.value = '';
+              if (tamanhoRef.current) tamanhoRef.current.value = '';
+              if (subcategoriaRef.current) subcategoriaRef.current.value = '';
+            }}
+            className="bg-zinc-950 border border-zinc-800 text-[10px] font-bold uppercase px-2 py-1 rounded text-pink-500 focus:outline-none cursor-pointer"
+          >
+            <option value="roupas">👕 Roupas</option>
+            <option value="acessorios">👜 Acessórios</option>
+            <option value="cosmeticos">💄 Cosméticos</option>
           </select>
         </div>
 
-        {/* Descrição */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Descrição</label>
-          <textarea ref={descricaoRef} rows={3} placeholder="Diga os detalhes da peça, tecido, composição..." required className="border border-zinc-800 p-3 rounded-lg text-sm bg-zinc-950 text-white placeholder-zinc-600 focus:outline-none focus:border-pink-500 transition-colors resize-none w-full" />
+        {/* Zona da Imagem Slim */}
+        <div className="border border-dashed border-zinc-800 rounded-lg p-2 text-center bg-zinc-950 relative min-h-[60px] flex items-center justify-center group hover:border-pink-500/40 transition-colors">
+          {previewUrl ? (
+            <div className="flex items-center gap-3 z-10">
+              <img src={previewUrl} alt="Preview" className="h-10 w-10 object-contain rounded border border-zinc-800 bg-zinc-900" />
+              <button type="button" onClick={() => { setPreviewUrl(null); if (inputFileRef.current) inputFileRef.current.value = ''; }} className="text-[10px] text-pink-500 font-bold hover:underline">Remover</button>
+            </div>
+          ) : (
+            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">📸 Adicionar Foto do Produto</p>
+          )}
+          <input ref={inputFileRef} type="file" accept="image/*" required={!previewUrl} onChange={handleMudarImagem} className="absolute inset-0 opacity-0 cursor-pointer" />
         </div>
 
-        {/* Botão Cadastrar */}
+        {/* Linha 1: Nome e Preço */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="col-span-2 flex flex-col gap-0.5">
+            <label className="text-[10px] font-bold text-zinc-400 uppercase">Nome</label>
+            <input ref={nomeRef} type="text" placeholder="Ex: Camiseta" required className="border border-zinc-800 p-2 rounded bg-zinc-950 text-xs text-white focus:outline-none focus:border-pink-500" />
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[10px] font-bold text-zinc-400 uppercase">Preço</label>
+            <input ref={precoRef} type="number" step="0.01" placeholder="99.90" required className="border border-zinc-800 p-2 rounded bg-zinc-950 text-xs text-white focus:outline-none focus:border-pink-500" />
+          </div>
+        </div>
+
+        {/* Linha 2: Filtros Dinâmicos Condicionais */}
+        <div className="grid grid-cols-2 gap-2">
+          {/* Gênero (Apenas para Roupas e Acessórios) */}
+          {abaAtiva !== 'cosmeticos' && (
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] font-bold text-zinc-400 uppercase">Gênero</label>
+              <select ref={generoRef} required className="border border-zinc-800 p-2 rounded bg-zinc-950 text-xs text-white focus:outline-none focus:border-pink-500">
+                <option value="">Selecione</option>
+                <option value="Masculino">Unissex / Masc</option>
+                <option value="Feminino">Feminino</option>
+              </select>
+            </div>
+          )}
+
+          {/* Tamanho (Apenas para Roupas) */}
+          {abaAtiva === 'roupas' && (
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] font-bold text-zinc-400 uppercase">Tamanho</label>
+              <select ref={tamanhoRef} required className="border border-zinc-800 p-2 rounded bg-zinc-950 text-xs text-white focus:outline-none focus:border-pink-500">
+                <option value="">Selecione</option>
+                <option value="PP">PP</option>
+                <option value="P">P</option>
+                <option value="M">M</option>
+                <option value="G">G</option>
+                <option value="GG">GG</option>
+                <option value="XG">XG</option>
+                {Array.from({ length: 26 }, (_, i) => 19 + i).map(num => (
+                  <option key={num} value={num.toString()}>{num}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Subcategoria para Acessórios ou Cosméticos ocupando espaço dinâmico */}
+          {abaAtiva !== 'roupas' && (
+            <div className="flex flex-col gap-0.5 className={abaAtiva === 'cosmeticos' ? 'col-span-2' : ''}">
+              <label className="text-[10px] font-bold text-zinc-400 uppercase">Subcategoria</label>
+              <select ref={subcategoriaRef} required className="border border-zinc-800 p-2 rounded bg-zinc-950 text-xs text-white focus:outline-none focus:border-pink-500">
+                <option value="">Selecione</option>
+                {abaAtiva === 'acessorios' ? (
+                  <>
+                    <option value="Relógio">Relógio</option>
+                    <option value="Óculos">Óculos</option>
+                    <option value="Boné">Boné</option>
+                    <option value="Joias">Joias</option>
+                    <option value="Outros">Outros</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="Perfume">Perfume</option>
+                    <option value="Creme">Creme</option>
+                    <option value="Maquiagem">Maquiagem</option>
+                    <option value="Outros">Outros</option>
+                  </>
+                )}
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* Subcategoria exclusiva para Roupas (Ocupa linha inteira se for roupa) */}
+        {abaAtiva === 'roupas' && (
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[10px] font-bold text-zinc-400 uppercase">Subcategoria</label>
+            <select ref={subcategoriaRef} required className="border border-zinc-800 p-2 rounded bg-zinc-950 text-xs text-white focus:outline-none focus:border-pink-500">
+              <option value="">Selecione a subcategoria</option>
+              <option value="Blusa">Blusa / Camiseta</option>
+              <option value="Calça">Calça</option>
+              <option value="Short">Short / Berma</option>
+              <option value="Íntima">Moda Íntima</option>
+              <option value="Calçados">Calçados</option>
+            </select>
+          </div>
+        )}
+
+        {/* Descrição Curta */}
+        <div className="flex flex-col gap-0.5">
+          <label className="text-[10px] font-bold text-zinc-400 uppercase">Descrição</label>
+          <textarea ref={descricaoRef} rows={3} placeholder="Detalhes do produto..." required className="border border-zinc-800 p-2 rounded bg-zinc-950 text-xs text-white placeholder-zinc-700 focus:outline-none focus:border-pink-500 resize-none" />
+        </div>
+
+        {/* Botão Enviar Slim */}
         <button 
           type="submit" 
           disabled={carregando}
-          className="w-full bg-pink-600 hover:bg-pink-500 text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-widest transition-colors cursor-pointer disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed mt-2 shadow-lg shadow-pink-600/10"
+          className="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold py-2 rounded-lg text-[11px] uppercase tracking-wider transition-colors cursor-pointer disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed mt-1"
         >
-          {carregando ? 'Salvando no Neon...' : 'Cadastrar Produto'}
+          {carregando ? 'Salvando...' : 'Cadastrar Produto'}
         </button>
 
       </form>
-
     </>
   );
 }
