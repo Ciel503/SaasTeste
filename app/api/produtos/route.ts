@@ -41,11 +41,14 @@ export async function GET(request: Request): Promise<NextResponse> {
 // ==========================================
 // FUNÇÃO POST: CADASTRA QUALQUER PRODUTO
 // ==========================================
+// ==========================================
+// FUNÇÃO POST: CADASTRA QUALQUER PRODUTO com até 4 imagens
+// ==========================================
 export async function POST(request: Request): Promise<NextResponse> {
   try {
     const data = await request.formData();
     
-    const file = data.get('file') as File;
+    // Captura os dados básicos do formulário
     const nome = data.get('nome') as string || '';
     const preco = data.get('preco') as string || '0';
     const categoria = data.get('categoria') as string || 'Roupas';
@@ -54,23 +57,51 @@ export async function POST(request: Request): Promise<NextResponse> {
     const tamanho = data.get('tamanho') as string || '';
     const descricao = data.get('descricao') as string || '';
 
-    if (!file) {
-      return NextResponse.json({ error: 'Arquivo de imagem não informado' }, { status: 400 });
+    // Extrai os arquivos de forma robusta do FormData
+    const arquivos: File[] = [];
+    
+    // Busca por todas as entradas do FormData que contêm arquivos de imagem
+    for (const [chave, valor] of data.entries()) {
+      if (valor instanceof File && valor.size > 0) {
+        arquivos.push(valor);
+      }
     }
 
-    // Envia para o Vercel Blob
-    const blob = await put(file.name, file, {
-      access: 'public',
-      token: process.env.DBFRAN_READ_WRITE_TOKEN,
-      addRandomSuffix: true,
-    });
+    // Validação de segurança: verifica se alguma imagem válida foi recebida
+    if (arquivos.length === 0) {
+      return NextResponse.json({ error: 'Ao menos um arquivo de imagem deve ser informado' }, { status: 400 });
+    }
 
-    const urlDaFoto = blob.url;
+    // Limita o processamento a no máximo 4 imagens
+    const arquivosValidos = arquivos.slice(0, 4);
+
+    // Faz o upload em paralelo de todas as imagens para o Vercel Blob
+    const uploadsPromises = arquivosValidos.map((file) =>
+      put(file.name, file, {
+        access: 'public',
+        token: process.env.DBFRAN_READ_WRITE_TOKEN,
+        addRandomSuffix: true,
+      })
+    );
+
+    const resultadosBlob = await Promise.all(uploadsPromises);
+    
+    // Mapeia os links retornados para as colunas correspondentes (ou null se não existirem)
+    const imagem1 = resultadosBlob[0] ? resultadosBlob[0].url : null;
+    const imagem2 = resultadosBlob[1] ? resultadosBlob[1].url : null;
+    const imagem3 = resultadosBlob[2] ? resultadosBlob[2].url : null;
+    const imagem4 = resultadosBlob[3] ? resultadosBlob[3].url : null;
+
+    // A imagem principal (imagem1) é estritamente obrigatória no banco
+    if (!imagem1) {
+      return NextResponse.json({ error: 'Falha ao gerar o link da imagem principal' }, { status: 400 });
+    }
+
     const sql = neon(`${process.env.FRANeon_DATABASE_URL}`);
 
-    // Insere no banco Neon
+    // Insere no banco Neon usando a nova estrutura de colunas de imagens
     await sql`
-      INSERT INTO produtos (nome, preco, categoria, genero, subcategoria, tamanho, descricao, imagem_url) 
+      INSERT INTO produtos (nome, preco, categoria, genero, subcategoria, tamanho, descricao, imagem1, imagem2, imagem3, imagem4) 
       VALUES (
         ${nome}, 
         ${parseFloat(preco)}, 
@@ -79,7 +110,10 @@ export async function POST(request: Request): Promise<NextResponse> {
         ${subcategoria}, 
         ${tamanho || null}, 
         ${descricao}, 
-        ${urlDaFoto}
+        ${imagem1},
+        ${imagem2},
+        ${imagem3},
+        ${imagem4}
       )
     `;
 
@@ -89,7 +123,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     revalidatePath('/acessorios');
     revalidatePath('/cosmeticos');
 
-    return NextResponse.json({ success: true, url: urlDaFoto });
+    return NextResponse.json({ success: true, urls: [imagem1, imagem2, imagem3, imagem4].filter(Boolean) });
 
   } catch (error) {
     console.error('Erro crítico no processo de cadastro:', error);

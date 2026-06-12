@@ -1,24 +1,25 @@
 import { neon } from "@neondatabase/serverless";
-// Importação corrigida com letras maiúsculas para evitar erros no Git/Vercel
 import BotaoCarrinho from "../components/botaocarrinho"; 
+import CardProdutoClient from "../components/CardProdutoClient";
 
 // Força o Next.js a renderizar a página de forma dinâmica, impedindo cache travado de build
 export const dynamic = 'force-dynamic';
 
-// 1. Interface atualizada com os novos campos mapeados do banco Neon
 interface Produto {
   id: number;
   nome: string;
   preco: string;
-  categoria: string;     // 'roupas', 'acessorios', 'cosmeticos'
-  genero: string | null; // Pode vir nulo do banco
+  categoria: string;     
+  genero: string | null; 
   subcategoria: string;
-  tamanho: string | null; // Pode vir nulo do banco
+  tamanho: string | null; 
   descricao: string;
-  imagem_url: string;
+  imagem1: string;       
+  imagem2: string | null; 
+  imagem3: string | null; 
+  imagem4: string | null; 
 }
 
-// 🔥 Ajustado: A função agora recebe searchParams tipado corretamente
 export default async function Home({
   searchParams,
 }: {
@@ -26,17 +27,16 @@ export default async function Home({
 }) {
   const sql = neon(`${process.env.FRANeon_DATABASE_URL}`);
 
-  // 🔥 Captura e aguarda o termo de busca vindo da URL do Header
   const params = await searchParams;
   const termoBusca = params.busca || "";
 
   let produtos: Produto[] = [];
 
-  // 🔥 Lógica: Se houver busca, filtra com ILIKE. Se não, traz tudo ordenado por ID DESC
+  // Busca as 4 colunas de imagens direto do Neon no servidor
   if (termoBusca.trim() !== "") {
     const termoQuery = `%${termoBusca}%`;
     produtos = (await sql`
-      SELECT id, nome, preco, categoria, genero, subcategoria, tamanho, descricao, imagem_url 
+      SELECT id, nome, preco, categoria, genero, subcategoria, tamanho, descricao, imagem1, imagem2, imagem3, imagem4 
       FROM produtos 
       WHERE nome ILIKE ${termoQuery} 
          OR descricao ILIKE ${termoQuery} 
@@ -46,7 +46,7 @@ export default async function Home({
     `) as Produto[];
   } else {
     produtos = (await sql`
-      SELECT id, nome, preco, categoria, genero, subcategoria, tamanho, descricao, imagem_url 
+      SELECT id, nome, preco, categoria, genero, subcategoria, tamanho, descricao, imagem1, imagem2, imagem3, imagem4 
       FROM produtos 
       ORDER BY id DESC
     `) as Produto[];
@@ -55,13 +55,10 @@ export default async function Home({
   return (
     <div className="w-full bg-zinc-50 min-h-screen pb-20">
       
-     
-
       {/* VITRINE */}
       <section className="max-w-7xl mx-auto px-2 sm:px-4 py-8">
         <div className="flex flex-col mb-6 px-1">
           <h2 className="text-base sm:text-lg font-black tracking-tight uppercase text-zinc-900">
-            {/* 🔥 Se tiver buscando algo, mostra o título adequado */}
             {termoBusca ? `Resultados para: "${termoBusca}"` : "Destaques"}
           </h2>
           <span className="text-xs text-zinc-500">Todos os produtos disponíveis ({produtos.length} itens).</span>
@@ -73,67 +70,10 @@ export default async function Home({
             <p className="text-xs text-zinc-400 mt-1">Acesse o painel /adm para inaugurar o novo banco!</p>
           </div>
         ) : (
+          /* Grid unificado chamando o componente com o Modal embutido */
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
             {produtos.map((produto) => (
-              <div 
-                key={produto.id} 
-                className="bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col group"
-              >
-                
-                {/* IMAGEM */}
-                <div className="w-full h-40 sm:h-52 bg-zinc-100 relative overflow-hidden border-b border-zinc-100 flex items-center justify-center">
-                  <img 
-                    src={produto.imagem_url} 
-                    alt={produto.nome}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  />
-                  
-                  {/* VALIDAÇÃO DE TAMANHO */}
-                  {produto.tamanho && (
-                    <span className="absolute top-2 right-2 bg-zinc-950/80 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                      {produto.tamanho}
-                    </span>
-                  )}
-                </div>
-
-                {/* CONTEÚDO */}
-                <div className="p-2 sm:p-3 flex flex-col flex-1 gap-1">
-                  
-                  {/* TAGS INFERIORES */}
-                  <div className="flex flex-wrap items-center gap-1 text-[9px] font-semibold uppercase tracking-wider">
-                    <span className="text-pink-600">{produto.categoria}</span>
-                    <span className="text-zinc-300">•</span>
-                    <span className="text-zinc-500">{produto.subcategoria}</span>
-                    
-                    {produto.genero && (
-                      <>
-                        <span className="text-zinc-300">•</span>
-                        <span className="text-zinc-400">{produto.genero}</span>
-                      </>
-                    )}
-                  </div>
-
-                  <h3 className="text-xs sm:text-sm font-bold text-zinc-900 line-clamp-1 group-hover:text-pink-600 transition-colors mt-0.5">
-                    {produto.nome}
-                  </h3>
-                  
-                  <p className="text-[10px] sm:text-xs text-zinc-500 leading-tight line-clamp-2 flex-1">
-                    {produto.descricao}
-                  </p>
-
-                  <div className="flex items-center justify-between mt-2 pt-1 border-t border-zinc-100">
-                    <span className="text-[11px] sm:text-sm font-black text-zinc-900">
-                      R$ {Number(produto.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-
-                    {/* Botão inteligente com os dados unificados do produto */}
-                    <BotaoCarrinho produto={produto} />
-                  </div>
-
-                </div>
-
-              </div>
+              <CardProdutoClient key={produto.id} produto={produto} />
             ))}
           </div>
         )}

@@ -2,17 +2,20 @@
 
 import { useState, useEffect, ChangeEvent } from 'react';
 
-
+// Interface corrigida para usar o novo padrão do Banco Neon
 interface Produto {
   id: number;
   nome: string;
   preco: string;
   categoria: string;
-  genero: string | null;  // 🔥 Adicionado para o TypeScript reconhecer
+  genero: string | null;  
   subcategoria: string;
-  tamanho: string | null; // 🔥 Adicionado para o TypeScript reconhecer
+  tamanho: string | null; 
   descricao: string;
-  imagem_url: string;
+  imagem1: string;        // Alterado de imagem_url para imagem1
+  imagem2: string | null; // Adicionado para manter a tipagem completa
+  imagem3: string | null;
+  imagem4: string | null;
 }
 
 export default function ListaEstoque() {
@@ -79,7 +82,7 @@ export default function ListaEstoque() {
     setPrecoEdit(prod.preco);
     setDescEdit(prod.descricao);
     setSubCatEdit(prod.subcategoria);
-    setPreviewUrl(prod.imagem_url);
+    setPreviewUrl(prod.imagem1); // Corrigido para ler imagem1
     setArquivoFoto(null);
   };
 
@@ -91,7 +94,6 @@ export default function ListaEstoque() {
     }
   };
 
-  // 🔥 Função atualizada: Sem e.preventDefault() e 100% livre de Server Actions
   const handleSalvarEdicao = async () => {
     setCarregando(true);
     try {
@@ -104,7 +106,7 @@ export default function ListaEstoque() {
       
       const prodOriginal = estoque.find(p => p.id === idProdutoEditando);
       formData.append('categoria', prodOriginal?.categoria || 'Roupas');
-      formData.append('genero', prodOriginal?.genero || '');   // 🔥 Atualizado seguro
+      formData.append('genero', prodOriginal?.genero || '');   
       formData.append('tamanho', prodOriginal?.tamanho || '');
       
       if (arquivoFoto) formData.append('file', arquivoFoto);
@@ -164,7 +166,8 @@ export default function ListaEstoque() {
             <div key={prod.id} className="flex flex-col bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-md">
               
               <div className="flex items-center justify-between gap-3 p-3">
-                <img src={prod.imagem_url} alt={prod.nome} className="w-10 h-12 object-cover rounded bg-zinc-950 border border-zinc-800" />
+                {/* 🔥 Corrigido aqui: trocado prod.imagem_url por prod.imagem1 */}
+                <img src={prod.imagem1} alt={prod.nome} className="w-10 h-12 object-cover rounded bg-zinc-950 border border-zinc-800" />
                 <div className="flex-1 min-w-0">
                   <h4 className="text-xs font-bold text-white truncate">{prod.nome}</h4>
                   <span className="text-[10px] text-pink-500 font-medium block uppercase tracking-wider mt-0.5">
@@ -187,7 +190,7 @@ export default function ListaEstoque() {
                 </div>
               </div>
 
-                            {/* 🔥 CONTAINER ENCAPSULADO COMO DIV (Zero chance de b.o.) */}
+              {/* CONTAINER ENCAPSULADO COMO DIV */}
               {idProdutoEditando === prod.id && (
                 <div className="border-t border-zinc-800 p-4 bg-zinc-950 flex flex-col gap-3 text-white transition-all duration-300">
                   
@@ -196,50 +199,83 @@ export default function ListaEstoque() {
                   </div>
 
                   <div className="flex items-center gap-3 bg-zinc-900 p-2.5 rounded-xl border border-zinc-800 relative group overflow-hidden">
-                    <img src={previewUrl || prod.imagem_url} alt="Preview" className="w-12 h-14 object-cover rounded border border-zinc-800 bg-zinc-950" />
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-zinc-400">Alterar Imagem</span>
-                      <span className="text-[9px] text-pink-500 font-bold hover:underline cursor-pointer">Clique para escolher</span>
+                    {/* 🔥 Corrigido aqui também: previewUrl || prod.imagem1 */}
+                    <img src={previewUrl || prod.imagem1} alt="Preview" className="w-12 h-14 object-cover rounded border border-zinc-800 bg-zinc-950" />
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[9px] text-zinc-500 font-bold uppercase">Foto Principal</span>
+                      <span className="text-[10px] text-pink-500 font-bold hover:underline cursor-pointer">Trocar Foto</span>
                     </div>
                     <input type="file" accept="image/*" onChange={handleMudarImagem} className="absolute inset-0 opacity-0 cursor-pointer" />
                   </div>
 
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Nome</label>
-                    <input type="text" value={nomeEdit} onChange={(e) => setNomeEdit(e.target.value)} required className="border border-zinc-800 p-2 rounded-lg text-xs bg-zinc-900 text-white focus:outline-none focus:border-pink-500 w-full" />
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-2 flex flex-col gap-1">
+                      <label className="text-[9px] font-bold text-zinc-500 uppercase">Nome</label>
+                      <input type="text" value={nomeEdit} onChange={(e) => setNomeEdit(e.target.value)} className="bg-zinc-900 border border-zinc-800 p-2 rounded text-xs focus:outline-none focus:border-pink-500" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] font-bold text-zinc-500 uppercase">Preço</label>
+                      <input type="number" step="0.01" value={precoEdit} onChange={(e) => setPrecoEdit(e.target.value)} className="bg-zinc-900 border border-zinc-800 p-2 rounded text-xs focus:outline-none focus:border-pink-500" />
+                    </div>
+                  </div>
+
+                                   <div className="flex flex-col gap-1">
+                    <label className="text-[9px] font-bold text-zinc-400 uppercase">Nome do Produto</label>
+                    <input 
+                      type="text" 
+                      value={nomeEdit} 
+                      onChange={(e) => setNomeEdit(e.target.value)} 
+                      className="w-full border border-zinc-800 p-2 rounded bg-zinc-900 text-xs text-white focus:outline-none focus:border-pink-500" 
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] font-bold text-zinc-400 uppercase">Preço (R$)</label>
+                      <input 
+                        type="number" 
+                        step="0.01" 
+                        value={precoEdit} 
+                        onChange={(e) => setPrecoEdit(e.target.value)} 
+                        className="w-full border border-zinc-800 p-2 rounded bg-zinc-900 text-xs text-white focus:outline-none focus:border-pink-500" 
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] font-bold text-zinc-400 uppercase">Subcategoria</label>
+                      <input 
+                        type="text" 
+                        value={subCatEdit} 
+                        onChange={(e) => setSubCatEdit(e.target.value)} 
+                        className="w-full border border-zinc-800 p-2 rounded bg-zinc-900 text-xs text-white focus:outline-none focus:border-pink-500" 
+                      />
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Preço (R$)</label>
-                    <input type="number" step="0.01" value={precoEdit} onChange={(e) => setPrecoEdit(e.target.value)} required className="border border-zinc-800 p-2 rounded-lg text-xs bg-zinc-900 text-white focus:outline-none focus:border-pink-500 w-full" />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Subcategoria</label>
-                    <input type="text" value={subCatEdit} onChange={(e) => setSubCatEdit(e.target.value)} required className="border border-zinc-800 p-2 rounded-lg text-xs bg-zinc-900 text-white focus:outline-none focus:border-pink-500 w-full" />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Descrição</label>
-                    <textarea rows={2} value={descEdit} onChange={(e) => setDescEdit(e.target.value)} required className="border border-zinc-800 p-2 rounded-lg text-xs bg-zinc-900 text-white focus:outline-none focus:border-pink-500 resize-none w-full" />
+                    <label className="text-[9px] font-bold text-zinc-400 uppercase">Descrição</label>
+                    <textarea 
+                      rows={2} 
+                      value={descEdit} 
+                      onChange={(e) => setDescEdit(e.target.value)} 
+                      className="w-full border border-zinc-800 p-2 rounded bg-zinc-900 text-xs text-white placeholder-zinc-700 focus:outline-none focus:border-pink-500 resize-none" 
+                    />
                   </div>
 
                   <div className="flex gap-2 mt-1">
-                    {/* 🔥 Botão disparando handleSalvarEdicao direto no onClick */}
                     <button 
                       type="button" 
-                      onClick={handleSalvarEdicao}
-                      disabled={carregando}
-                      className="flex-1 bg-pink-600 hover:bg-pink-500 text-white font-black py-2 rounded-xl text-[11px] uppercase tracking-wider transition-colors cursor-pointer disabled:bg-zinc-800 disabled:text-zinc-600"
+                      onClick={() => setIdProdutoEditando(null)} 
+                      className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-2 rounded text-[10px] uppercase tracking-wider transition-colors"
                     >
-                      {carregando ? 'Salvando...' : 'Salvar'}
+                      Cancelar
                     </button>
                     <button 
                       type="button" 
-                      onClick={() => setIdProdutoEditando(null)}
-                      className="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold px-3 py-2 rounded-xl text-[11px] uppercase tracking-wider transition-colors cursor-pointer"
+                      disabled={carregando}
+                      onClick={handleSalvarEdicao} 
+                      className="flex-1 bg-pink-600 hover:bg-pink-500 text-white font-bold py-2 rounded text-[10px] uppercase tracking-wider transition-colors disabled:opacity-50"
                     >
-                      Cancelar
+                      {carregando ? 'Salvando...' : 'Salvar'}
                     </button>
                   </div>
 

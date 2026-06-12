@@ -6,8 +6,7 @@ export default function FormularioAdm() {
   // Controle de abas principais (Roupas, Acessórios, Cosméticos)
   const [abaAtiva, setAbaAtiva] = useState<'roupas' | 'acessorios' | 'cosmeticos'>('roupas');
   
-  // Referências dos elementos do formulário
-  const inputFileRef = useRef<HTMLInputElement>(null);
+  // Referências dos elementos textuais do formulário
   const nomeRef = useRef<HTMLInputElement>(null);
   const precoRef = useRef<HTMLInputElement>(null);
   const descricaoRef = useRef<HTMLTextAreaElement>(null);
@@ -15,31 +14,62 @@ export default function FormularioAdm() {
   const tamanhoRef = useRef<HTMLSelectElement>(null);
   const subcategoriaRef = useRef<HTMLSelectElement>(null);
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // Array de referências para os 4 inputs de arquivos individuais
+  const inputFilesRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Estado para armazenar as URLs de preview de cada uma das 4 posições
+  const [previewUrls, setPreviewUrls] = useState<(string | null)[]>([null, null, null, null]);
   const [carregando, setCarregando] = useState(false);
   const [statusMensagem, setStatusMensagem] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null);
   const [idProdutoEditando, setIdProdutoEditando] = useState<number | null>(null);
 
-  const handleMudarImagem = (event: ChangeEvent<HTMLInputElement>) => {
+  // Gerencia a alteração de imagem baseado no índice (0 a 3)
+  const handleMudarImagem = (event: ChangeEvent<HTMLInputElement>, index: number) => {
     const arquivo = event.target.files?.[0];
-    setPreviewUrl(arquivo ? URL.createObjectURL(arquivo) : null);
+    
+    setPreviewUrls((prev) => {
+      const novasUrls = [...prev];
+      novasUrls[index] = arquivo ? URL.createObjectURL(arquivo) : null;
+      return novasUrls;
+    });
+  };
+
+  // Remove a imagem de um índice específico
+  const handleRemoverImagem = (index: number) => {
+    setPreviewUrls((prev) => {
+      const novasUrls = [...prev];
+      novasUrls[index] = null;
+      return novasUrls;
+    });
+    
+    if (inputFilesRef.current[index]) {
+      inputFilesRef.current[index]!.value = '';
+    }
   };
 
   const handleUpload = async (event: React.FormEvent) => {
     event.preventDefault();
     setStatusMensagem(null);
 
-    if (!idProdutoEditando && !inputFileRef.current?.files?.length) {
-      setStatusMensagem({ tipo: 'erro', texto: '⚠️ Selecione uma foto do produto!' });
+    // Validação: Exige ao menos a imagem principal (index 0) para novos cadastros
+    if (!idProdutoEditando && !previewUrls[0]) {
+      setStatusMensagem({ tipo: 'erro', texto: '⚠️ Selecione ao menos a Imagem 1 (Principal)!' });
       return;
     }
 
     setCarregando(true);
-    const file = inputFileRef.current?.files?.[0];
 
     try {
       const formData = new FormData();
-      if (file) formData.append('file', file);
+      
+      // Percorre os 4 inputs coletando os arquivos que existem
+      inputFilesRef.current.forEach((input, index) => {
+        const arquivo = input?.files?.[0];
+        if (arquivo) {
+          // Enviamos com chaves indexadas (ex: file0, file1...) para facilitar no back-end
+          formData.append(`file${index}`, arquivo);
+        }
+      });
       
       formData.append('nome', nomeRef.current?.value || '');
       formData.append('preco', precoRef.current?.value || '0');
@@ -65,8 +95,12 @@ export default function FormularioAdm() {
 
         window.dispatchEvent(new Event("estoqueAtualizado"));
 
-        setPreviewUrl(null);
-        if (inputFileRef.current) inputFileRef.current.value = '';
+        // Reseta todos os previews e inputs de arquivos
+        setPreviewUrls([null, null, null, null]);
+        inputFilesRef.current.forEach((input) => {
+          if (input) input.value = '';
+        });
+
         if (nomeRef.current) nomeRef.current.value = '';
         if (precoRef.current) precoRef.current.value = '';
         if (descricaoRef.current) descricaoRef.current.value = '';
@@ -122,17 +156,53 @@ export default function FormularioAdm() {
           </select>
         </div>
 
-        {/* Zona da Imagem Slim */}
-        <div className="border border-dashed border-zinc-800 rounded-lg p-2 text-center bg-zinc-950 relative min-h-[60px] flex items-center justify-center group hover:border-pink-500/40 transition-colors">
-          {previewUrl ? (
-            <div className="flex items-center gap-3 z-10">
-              <img src={previewUrl} alt="Preview" className="h-10 w-10 object-contain rounded border border-zinc-800 bg-zinc-900" />
-              <button type="button" onClick={() => { setPreviewUrl(null); if (inputFileRef.current) inputFileRef.current.value = ''; }} className="text-[10px] text-pink-500 font-bold hover:underline">Remover</button>
+        {/* Bloco de Legenda das Fotos */}
+        <label className="text-[10px] font-bold text-zinc-400 uppercase -mb-1.5">Fotos do Produto (Máx 4)</label>
+
+        {/* Grid de 4 Inputs Individuais Lado a Lado (Estilo 2x2 ou linha compacta) */}
+        <div className="grid grid-cols-4 gap-1.5">
+          {[0, 1, 2, 3].map((index) => (
+            <div 
+              key={index} 
+              className="border border-dashed border-zinc-800 rounded-lg h-14 bg-zinc-950 relative flex flex-col items-center justify-center group hover:border-pink-500/40 transition-colors overflow-hidden p-0.5"
+            >
+              {previewUrls[index] ? (
+                <div className="absolute inset-0 z-10 bg-zinc-950 flex flex-col items-center justify-between p-1">
+                  <img 
+                    src={previewUrls[index]!} 
+                    alt={`Preview ${index + 1}`} 
+                    className="h-8 w-full object-contain rounded bg-zinc-900" 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => handleRemoverImagem(index)} 
+                    className="text-[8px] text-pink-500 font-extrabold hover:underline uppercase tracking-tight"
+                  >
+                    Remover
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center pointer-events-none text-center">
+                  <span className="text-[14px] text-zinc-600 font-bold">{index + 1}</span>
+                  <span className="text-[7px] text-zinc-500 font-bold uppercase tracking-tight">Foto</span>
+                </div>
+              )}
+              
+              <input 
+                ref={(el) => { inputFilesRef.current[index] = el; }} 
+                type="image/*" // Corrigido de "image/*" para tipo "file" para o seletor abrir corretamente
+                className="hidden" 
+              />
+              {/* Ajustado para input tipo file padrão oculto controlado pelo clique na div */}
+              <input 
+                ref={(el) => { inputFilesRef.current[index] = el; }}
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => handleMudarImagem(e, index)} 
+                className="absolute inset-0 opacity-0 cursor-pointer z-0" 
+              />
             </div>
-          ) : (
-            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">📸 Adicionar Foto do Produto</p>
-          )}
-          <input ref={inputFileRef} type="file" accept="image/*" required={!previewUrl} onChange={handleMudarImagem} className="absolute inset-0 opacity-0 cursor-pointer" />
+          ))}
         </div>
 
         {/* Linha 1: Nome e Preço */}
@@ -147,7 +217,7 @@ export default function FormularioAdm() {
           </div>
         </div>
 
-        {/* Linha 2: Filtros Dinâmicos Condicionais */}
+                {/* Linha 2: Filtros Dinâmicos Condicionais */}
         <div className="grid grid-cols-2 gap-2">
           {/* Gênero (Apenas para Roupas e Acessórios) */}
           {abaAtiva !== 'cosmeticos' && (
@@ -182,7 +252,7 @@ export default function FormularioAdm() {
 
           {/* Subcategoria para Acessórios ou Cosméticos ocupando espaço dinâmico */}
           {abaAtiva !== 'roupas' && (
-            <div className="flex flex-col gap-0.5 className={abaAtiva === 'cosmeticos' ? 'col-span-2' : ''}">
+            <div className={`flex flex-col gap-0.5 ${abaAtiva === 'cosmeticos' ? 'col-span-2' : ''}`}>
               <label className="text-[10px] font-bold text-zinc-400 uppercase">Subcategoria</label>
               <select ref={subcategoriaRef} required className="border border-zinc-800 p-2 rounded bg-zinc-950 text-xs text-white focus:outline-none focus:border-pink-500">
                 <option value="">Selecione</option>
@@ -232,12 +302,12 @@ export default function FormularioAdm() {
         <button 
           type="submit" 
           disabled={carregando}
-          className="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold py-2 rounded-lg text-[11px] uppercase tracking-wider transition-colors cursor-pointer disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed mt-1"
+          className="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold py-2 rounded text-xs uppercase tracking-wider transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {carregando ? 'Salvando...' : 'Cadastrar Produto'}
+          {carregando ? 'Salvando...' : idProdutoEditando ? 'Salvar Alterações' : 'Cadastrar Produto'}
         </button>
-
       </form>
     </>
   );
 }
+
