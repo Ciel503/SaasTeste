@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import BotaoCarrinho from "../components/botaocarrinho"; 
+import BotaoCarrinho from "../components/botaocarrinho"
 import CardProdutoClient from "../components/CardProdutoClient";
 
 // Força o Next.js a renderizar a página de forma dinâmica, impedindo cache travado de build
